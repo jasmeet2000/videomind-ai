@@ -37,11 +37,34 @@ settings = get_settings()
 
 async def get_db():
     """
-    Stub: yields a DB session.
-    Phase 6: Replace with real asyncpg pool connection.
+    Yield an asyncpg connection from a lazily-created pool.
+
+    Falls back to yielding None when asyncpg isn't installed or when no
+    database URL is configured (useful for local development and tests).
     """
-    # TODO (Phase 6): Replace with real pool.acquire()
-    yield None
+    global _db_pool
+    # Ensure module-level variable exists
+    if "_db_pool" not in globals():
+        _db_pool = None
+
+    dsn = getattr(settings, "database_url", None)
+    if not dsn:
+        # No database configured — yield None so callers can operate in-memory
+        yield None
+        return
+
+    if _db_pool is None:
+        try:
+            import asyncpg  # type: ignore
+        except Exception:
+            # Optional dependency not installed — fall back to None
+            yield None
+            return
+        # Create a small pool for application usage
+        _db_pool = await asyncpg.create_pool(dsn=dsn, min_size=1, max_size=5)
+
+    async with _db_pool.acquire() as conn:
+        yield conn
 
 
 # ---------------------------------------------------------------------------
@@ -86,10 +109,55 @@ def get_qdrant_client():
 def get_ingest_use_case():
     """
     Provide an IngestVideoUseCase with all dependencies wired in.
-    Phase 6: Wire VideoRepository, TranscriptRepository, VectorRepository,
-             EmbeddingService, WhisperService, OCRService.
+
+    This function performs conservative, lazy wiring so the application can
+    run without optional heavy dependencies in development. Preference order:
+      - SQLite (when DATABASE_URL points to sqlite)
+      - Postgres (when DATABASE_URL points to postgres)
+      - In-memory fallback
     """
-    return None
+    # Lazy imports to avoid pulling optional deps at module import time
+    from app.use_cases.ingest_video import IngestVideoUseCase
+
+    video_repo = None
+    transcript_repo = None
+
+    dsn = getattr(settings, "database_url", "") or ""
+
+    try:
+        if dsn.startswith("sqlite"):
+            from app.repositories.sqlite_video_repository import SQLiteVideoRepository
+            from app.repositories.sqlite_transcript_repository import SQLiteTranscriptRepository
+
+            db_path = "data\\videomind.db"
+            video_repo = SQLiteVideoRepository(db_path=db_path)
+            transcript_repo = SQLiteTranscriptRepository(db_path=db_path)
+        elif dsn:
+            # Assume a Postgres-style DSN
+            from app.repositories.postgres_video_repository import PostgresVideoRepository
+            from app.repositories.postgres_transcript_repository import PostgresTranscriptRepository
+
+            video_repo = PostgresVideoRepository(dsn=dsn)
+            transcript_repo = PostgresTranscriptRepository(dsn=dsn)
+    except Exception:
+        # If any optional dependency is missing or initialization fails,
+        # fall back to in-memory implementations so the app remains usable.
+        from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
+        from app.repositories.in_memory_video_repository import InMemoryVideoRepository
+
+        transcript_repo = transcript_repo or InMemoryTranscriptRepository()
+        video_repo = video_repo or InMemoryVideoRepository()
+
+    # Wire the light-weight runtime services used by the Ingest use case
+    from app.video.processor import VideoProcessor
+    from app.speech.whisper_service import WhisperService
+
+    return IngestVideoUseCase(
+        video_processor=VideoProcessor(),
+        whisper_service=WhisperService(),
+        transcript_repo=transcript_repo,
+        video_repo=video_repo,
+    )
 
 
 def get_search_use_case():
