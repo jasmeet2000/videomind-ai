@@ -239,6 +239,21 @@ class IReranker(ABC):
 
 
 # ---------------------------------------------------------------------------
+# LLM Generation Interface
+# ---------------------------------------------------------------------------
+
+class ILLMBackend(ABC):
+    """Contract for communicating with a Local LLM (e.g. Ollama)."""
+
+    @abstractmethod
+    async def generate(self, prompt: str, system_prompt: str = "") -> str:
+        """
+        Generate a text response given a prompt and optional system instruction.
+        """
+        ...
+
+
+# ---------------------------------------------------------------------------
 # Video Repository Interface
 # DESIGN PATTERN — Repository: Abstracts all persistence operations.
 #   Use cases call these methods; they never execute SQL directly.

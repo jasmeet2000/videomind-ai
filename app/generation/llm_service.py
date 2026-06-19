@@ -1,49 +1,46 @@
 """
 VideoMind AI — LLM Service (Ollama Client)
-===========================================
-Wraps the Ollama HTTP client and exposes a clean generate() interface.
-
-DESIGN PATTERN — Strategy:
-    LLMService accepts an ILLMBackend at construction. Swapping from
-    Qwen3 to Llama 3.1 or Gemma 3 requires zero changes here.
-
-SOLID — Dependency Inversion:
-    Depends on ILLMBackend abstract interface, not on the Ollama client.
-
-SOLID — Single Responsibility:
-    Only handles LLM generation. Context assembly is in ContextBuilder.
+============================================
+Communicates with a local Ollama instance for LLM generation.
 """
 
-from __future__ import annotations
+import logging
+
+import httpx
 
 from app.domain.interfaces import ILLMBackend
 
-# Stub — implementation in Phase 8
+logger = logging.getLogger(__name__)
 
 
-class LLMService:
-    """
-    Generates natural language responses via a pluggable LLM backend.
-    """
+class OllamaClient(ILLMBackend):
+    """Client for generating responses using a local Ollama instance."""
 
-    def __init__(self, backend: ILLMBackend) -> None:
+    def __init__(self, host: str = "http://localhost:11434", model: str = "qwen3") -> None:
+        self.host = host.rstrip("/")
+        self.model = model
+
+    async def generate(self, prompt: str, system_prompt: str = "") -> str:
         """
-        Args:
-            backend: An ILLMBackend implementation (e.g., OllamaBackend).
+        Generate a response via the Ollama /api/generate endpoint.
         """
-        self.backend = backend
+        url = f"{self.host}/api/generate"
+        payload = {
+            "model": self.model,
+            "prompt": prompt,
+            "system": system_prompt,
+            "stream": False,
+        }
 
-    def generate(self, prompt: str) -> str:
-        """
-        Send a prompt to the LLM and return the generated response.
-
-        Args:
-            prompt: Fully assembled prompt string from PromptBuilder.
-
-        Returns:
-            Generated response text from the LLM.
-
-        Raises:
-            LLMUnavailableError: If the backend is unreachable.
-        """
-        raise NotImplementedError("Phase 8: Implement Ollama generation")
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload, timeout=120.0)
+                response.raise_for_status()
+                data = response.json()
+                return data.get("response", "")
+        except httpx.RequestError as e:
+            logger.error(f"Failed to communicate with Ollama at {self.host}: {e}")
+            raise RuntimeError("LLM generation failed due to network error.") from e
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Ollama returned an error status: {e.response.status_code}")
+            raise RuntimeError(f"LLM generation failed with status {e.response.status_code}") from e

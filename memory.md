@@ -101,7 +101,7 @@
 | 5 | ✅ Complete | OCR adapters (PaddleOCR/EasyOCR), object detection, scene analyzer fully implemented and tested (86.78% total coverage) |
 | 6 | ✅ Complete | Embeddings + Qdrant |
 | 7 | ✅ Complete | Retrieval layer (Dense, Sparse BM25, Hybrid, Reranker) |
-| 8 | ⏳ Pending | LLM integration + RAG |
+| 8 | ✅ Complete | LLM integration + RAG (Ollama) |
 | 9 | ⏳ Pending | FastAPI routes + Streamlit |
 | 10 | ⏳ Pending | Tests |
 | 11 | ⏳ Pending | Docker + CI/CD |

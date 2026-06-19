@@ -94,12 +94,7 @@ source = ["app"]
 omit = [
     "app/main.py",              # Tested via TestClient
     "*/__init__.py",
-    # Phase 8 stubs
-    "app/generation/prompt_builder.py",
-    "app/generation/context_builder.py",
-    "app/generation/llm_service.py",
-    # Phase 8 use case stub
-    "app/use_cases/chat_with_video.py",
+    # Phase 9 use case stub
     "app/use_cases/search_video.py",
     # Phase 9 schemas (no routes yet)
     "app/api/schemas/video.py",
@@ -114,6 +109,7 @@ show_missing = true
 #   Phase 2:  50%  (core + domain only, stubs excluded)
 #   Phase 6:  65%  (+ video, speech, vision, embeddings)
 #   Phase 7:  67%  (+ retrieval layer)
-#   Phase 9:  75%  (+ generation, routes)
+#   Phase 8:  68%  (+ generation layer)
+#   Phase 9:  75%  (+ routes)
 #   Phase 10: 80%  (full test suite)
-fail_under = 67
+fail_under = 68
