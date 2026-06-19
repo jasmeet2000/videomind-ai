@@ -90,13 +90,6 @@ source = ["app"]
 omit = [
     "app/main.py",              # Tested via TestClient
     "*/__init__.py",
-    # Phase 6 stubs — DB repositories
-    "app/repositories/postgres_*.py",
-    "app/repositories/qdrant_*.py",
-    "app/repositories/sqlite_*.py",
-    "app/repositories/video_repository.py",
-    "app/repositories/transcript_repository.py",
-    "app/repositories/vector_repository.py",
     # Phase 7 stubs
     "app/retrieval/dense.py",
     "app/retrieval/hybrid.py",
@@ -108,8 +101,6 @@ omit = [
     # Phase 8 use case stub
     "app/use_cases/chat_with_video.py",
     "app/use_cases/search_video.py",
-    # Phase 6 DI stubs (no logic yet)
-    "app/api/dependencies/services.py",
     # Phase 9 schemas (no routes yet)
     "app/api/schemas/video.py",
     "app/api/schemas/search.py",
@@ -124,4 +115,4 @@ show_missing = true
 #   Phase 6:  65%  (+ video, speech, vision, embeddings)
 #   Phase 9:  75%  (+ retrieval, generation, routes)
 #   Phase 10: 80%  (full test suite)
-fail_under = 50
+fail_under = 65
