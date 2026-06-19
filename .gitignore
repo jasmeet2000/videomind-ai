@@ -1,0 +1,57 @@
+# =============================================================================
+# VideoMind AI .gitignore
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+env/
+venv/
+.venv/
+ENV/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Environment ---
+.env
+!.env.example
+
+# --- Project Data (never commit video files or logs) ---
+data/
+logs/
+
+# --- Model Cache (large binary files) ---
+models/
+*.gguf
+*.bin
+*.safetensors
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+*.override.yml
+
+# --- Testing ---
+.pytest_cache/
+test_output/
+
+# --- Docs build ---
+docs/_build/
+site/

@@ -1,0 +1,115 @@
+# =============================================================================
+# VideoMind AI — Docker Compose
+# Single command: docker-compose up --build
+# Services: app (FastAPI), db (PostgreSQL), qdrant, ollama
+# =============================================================================
+
+version: "3.9"
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # FastAPI Application
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: videomind_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://videomind:videomind@db:5432/videomind
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      OLLAMA_HOST: http://ollama:11434
+    volumes:
+      - ./data:/app/data          # Video uploads
+      - ./logs:/app/logs          # Loguru output
+    depends_on:
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    networks:
+      - videomind_net
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — Metadata store
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: videomind_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: videomind
+      POSTGRES_PASSWORD: videomind
+      POSTGRES_DB: videomind
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U videomind"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - videomind_net
+
+  # ---------------------------------------------------------------------------
+  # Qdrant — Vector database
+  # ---------------------------------------------------------------------------
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: videomind_qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"      # gRPC port
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - videomind_net
+
+  # ---------------------------------------------------------------------------
+  # Ollama — Local LLM server
+  # ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: videomind_ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama   # Model weight cache
+    networks:
+      - videomind_net
+    # Uncomment if you have an NVIDIA GPU:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+
+# =============================================================================
+# Volumes — persistent named volumes survive container restarts
+# =============================================================================
+volumes:
+  postgres_data:
+  qdrant_data:
+  ollama_data:
+
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  videomind_net:
+    driver: bridge

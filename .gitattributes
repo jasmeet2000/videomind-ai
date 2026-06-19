@@ -1,0 +1,42 @@
+# VideoMind AI — Git Line Ending Normalization
+# Ensures consistent LF line endings in the repo regardless of OS.
+# Windows checkouts will still get CRLF locally via core.autocrlf.
+
+* text=auto eol=lf
+
+# Force LF for these file types (shell scripts, Docker, YAML must be LF)
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Python — LF
+*.py text eol=lf
+
+# Markdown — LF
+*.md text eol=lf
+
+# Config files — LF
+*.toml text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+*.env text eol=lf
+*.example text eol=lf
+requirements*.txt text eol=lf
+
+# Binary — no transformation
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.mp4 binary
+*.avi binary
+*.mkv binary
+*.mov binary
+*.wav binary
+*.mp3 binary
+*.gguf binary
+*.bin binary
+*.safetensors binary
