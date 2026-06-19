@@ -138,7 +138,7 @@ class IDenseRetriever(ABC):
     """Contract for dense (vector similarity) retrieval."""
 
     @abstractmethod
-    def search(
+    async def search(
         self,
         query_vector: list[float],
         video_id: str,
@@ -162,7 +162,7 @@ class ISparseRetriever(ABC):
     """Contract for sparse (keyword / BM25) retrieval."""
 
     @abstractmethod
-    def search(
+    async def search(
         self,
         query: str,
         video_id: str,
@@ -186,7 +186,7 @@ class IHybridRetriever(ABC):
     """Contract for hybrid (dense + sparse fusion) retrieval."""
 
     @abstractmethod
-    def search(
+    async def search(
         self,
         query: str,
         query_vector: list[float],

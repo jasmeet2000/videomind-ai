@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Multi-modal video intelligence platform — query videos via natural language."
 requires-python = ">=3.9"
 
+[project.dependencies]
+rank-bm25 = "^0.2.2"
+sentence-transformers = "^2.2.2"
+
 # =============================================================================
 # Pytest configuration
 # =============================================================================
@@ -90,10 +94,6 @@ source = ["app"]
 omit = [
     "app/main.py",              # Tested via TestClient
     "*/__init__.py",
-    # Phase 7 stubs
-    "app/retrieval/dense.py",
-    "app/retrieval/hybrid.py",
-    "app/retrieval/reranker.py",
     # Phase 8 stubs
     "app/generation/prompt_builder.py",
     "app/generation/context_builder.py",
@@ -113,6 +113,7 @@ show_missing = true
 # Progressive coverage targets:
 #   Phase 2:  50%  (core + domain only, stubs excluded)
 #   Phase 6:  65%  (+ video, speech, vision, embeddings)
-#   Phase 9:  75%  (+ retrieval, generation, routes)
+#   Phase 7:  67%  (+ retrieval layer)
+#   Phase 9:  75%  (+ generation, routes)
 #   Phase 10: 80%  (full test suite)
-fail_under = 65
+fail_under = 67

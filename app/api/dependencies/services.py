@@ -126,16 +126,16 @@ def get_ingest_use_case():
 
     try:
         if dsn.startswith("sqlite"):
-            from app.repositories.sqlite_video_repository import SQLiteVideoRepository
             from app.repositories.sqlite_transcript_repository import SQLiteTranscriptRepository
+            from app.repositories.sqlite_video_repository import SQLiteVideoRepository
 
             db_path = "data\\videomind.db"
             video_repo = SQLiteVideoRepository(db_path=db_path)
             transcript_repo = SQLiteTranscriptRepository(db_path=db_path)
         elif dsn:
             # Assume a Postgres-style DSN
-            from app.repositories.postgres_video_repository import PostgresVideoRepository
             from app.repositories.postgres_transcript_repository import PostgresTranscriptRepository
+            from app.repositories.postgres_video_repository import PostgresVideoRepository
 
             video_repo = PostgresVideoRepository(dsn=dsn)
             transcript_repo = PostgresTranscriptRepository(dsn=dsn)
@@ -149,8 +149,8 @@ def get_ingest_use_case():
         video_repo = video_repo or InMemoryVideoRepository()
 
     # Wire the light-weight runtime services used by the Ingest use case
-    from app.video.processor import VideoProcessor
     from app.speech.whisper_service import WhisperService
+    from app.video.processor import VideoProcessor
 
     return IngestVideoUseCase(
         video_processor=VideoProcessor(),

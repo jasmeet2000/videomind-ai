@@ -5,7 +5,6 @@ import asyncio
 import unittest
 
 from app.repositories.qdrant_vector_repository import QdrantVectorRepository
-from app.domain.entities import SearchResult
 
 
 class FakeResponse:
