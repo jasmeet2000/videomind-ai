@@ -1,8 +1,8 @@
-import unittest
 import asyncio
+import unittest
 
-from app.repositories.in_memory_video_repository import InMemoryVideoRepository
 from app.repositories.in_memory_vector_repository import InMemoryVectorRepository
+from app.repositories.in_memory_video_repository import InMemoryVideoRepository
 
 
 class TestInMemoryRepositories(unittest.TestCase):

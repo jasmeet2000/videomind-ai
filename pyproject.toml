@@ -51,6 +51,10 @@ ignore = [
     "ANN401",  # Dynamically typed expressions (Any) are disallowed
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["ANN"]
+
+
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
 force-sort-within-sections = true
@@ -83,11 +87,6 @@ source = ["app"]
 omit = [
     "app/main.py",              # Tested via TestClient
     "*/__init__.py",
-    # Phase 3 stubs (implemented in Phase 3)
-    "app/video/frames.py",
-    "app/video/metadata.py",
-    # Phase 4 stubs
-    "app/speech/language_detection.py",
     # Phase 5 stubs
     "app/vision/object_detector.py",
     "app/vision/scene_analyzer.py",

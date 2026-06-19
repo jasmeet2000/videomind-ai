@@ -1,11 +1,11 @@
-import unittest
-import types
-import tempfile
 import os
+import tempfile
+import types
+import unittest
 from unittest.mock import patch
 
-from app.speech.whisper_service import WhisperService
 from app.core.exceptions import TranscriptionError
+from app.speech.whisper_service import WhisperService
 
 
 class TestWhisperService(unittest.TestCase):

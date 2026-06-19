@@ -122,6 +122,7 @@ async def readiness() -> ReadinessResponse:
         overall_status = "ok"
     else:
         from urllib.parse import urlparse
+
         from app.core.network import tcp_check
 
         # Parse DB host/port from database_url (e.g. postgresql://user:pw@host:port/db)

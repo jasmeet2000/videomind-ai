@@ -3,8 +3,8 @@ Network utilities for basic connectivity checks used by readiness probes.
 """
 from __future__ import annotations
 
-import socket
 from contextlib import closing
+import socket
 
 
 def tcp_check(host: str, port: int, timeout: float = 1.0) -> bool:

@@ -15,7 +15,6 @@ which is fragile). Loguru's own test suite covers output formatting.
 from __future__ import annotations
 
 import pytest
-from loguru import logger as loguru_logger
 
 from app.core.logging import configure_logging, get_logger
 

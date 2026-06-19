@@ -7,15 +7,15 @@ application code without requiring async DB drivers.
 """
 from __future__ import annotations
 
-import json
-import sqlite3
-import os
 import asyncio
+import json
+import os
+import sqlite3
+from typing import Optional
 import uuid
-from typing import List, Optional
 
-from app.domain.interfaces import ITranscriptRepository
 from app.domain.entities import TranscriptChunk
+from app.domain.interfaces import ITranscriptRepository
 
 
 class SQLiteTranscriptRepository(ITranscriptRepository):
@@ -121,7 +121,7 @@ class SQLiteTranscriptRepository(ITranscriptRepository):
                 )
                 # attach embedding attribute if the dataclass doesn't define it
                 try:
-                    setattr(tc, "embedding", embedding)
+                    tc.embedding = embedding
                 except Exception:
                     pass
                 result.append(tc)

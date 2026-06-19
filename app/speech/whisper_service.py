@@ -17,12 +17,13 @@ DESIGN PATTERN — Strategy:
 
 from __future__ import annotations
 
-from app.domain.entities import TranscriptChunk
 from pathlib import Path
 from typing import List
+
 from app.core.config import get_settings
-from app.core.logging import get_logger
 from app.core.exceptions import TranscriptionError
+from app.core.logging import get_logger
+from app.domain.entities import TranscriptChunk
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -129,8 +130,8 @@ class WhisperService:
 
         # Chunk the transcript into indexable chunks using the chunker
         try:
-            from app.speech.chunker import chunk_transcript_chunks
             from app.core.constants import TRANSCRIPT_CHUNK_MAX_TOKENS, TRANSCRIPT_OVERLAP_TOKENS
+            from app.speech.chunker import chunk_transcript_chunks
             return chunk_transcript_chunks(
                 chunks,
                 max_tokens=TRANSCRIPT_CHUNK_MAX_TOKENS,

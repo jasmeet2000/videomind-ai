@@ -19,15 +19,13 @@ Clean Architecture — Application Layer:
 
 from __future__ import annotations
 
-from __future__ import annotations
-
 from typing import Any, Dict
 
-from app.video.processor import VideoProcessor
-from app.speech.whisper_service import WhisperService
-from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
-from app.domain.interfaces import ITranscriptRepository, IVideoRepository
 from app.core.logging import get_logger
+from app.domain.interfaces import ITranscriptRepository, IVideoRepository
+from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
+from app.speech.whisper_service import WhisperService
+from app.video.processor import VideoProcessor
 
 logger = get_logger(__name__)
 

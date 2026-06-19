@@ -1,8 +1,9 @@
 import unittest
+
 import numpy as np
 
-from app.vision.ocr_service import OCRService
 from app.domain.entities import TextBlock
+from app.vision.ocr_service import OCRService
 
 
 class FakeEngine:

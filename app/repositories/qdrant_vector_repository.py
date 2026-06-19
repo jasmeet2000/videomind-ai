@@ -8,7 +8,7 @@ thread to avoid blocking the event loop.
 from __future__ import annotations
 
 import asyncio
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from app.domain.entities import SearchResult
 

@@ -1,12 +1,12 @@
-import unittest
 import asyncio
+import unittest
 from unittest.mock import MagicMock
 
-from app.use_cases.ingest_video import IngestVideoUseCase
 from app.domain.entities import TranscriptChunk
-from app.video.processor import VideoProcessor
-from app.speech.whisper_service import WhisperService
 from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
+from app.speech.whisper_service import WhisperService
+from app.use_cases.ingest_video import IngestVideoUseCase
+from app.video.processor import VideoProcessor
 
 
 class TestIngestVideoUseCase(unittest.TestCase):

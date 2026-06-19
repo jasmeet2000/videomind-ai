@@ -19,8 +19,8 @@ Clean Architecture — API Layer testing:
 
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
 from app.core.exceptions import VideoNotFoundError
 from app.main import create_app

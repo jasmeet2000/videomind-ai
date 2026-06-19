@@ -14,8 +14,6 @@ DRY Principle validation:
 
 from __future__ import annotations
 
-import pytest
-
 from app.core.constants import (
     AUDIO_SAMPLE_RATE_HZ,
     BM25_B,
@@ -41,8 +39,8 @@ from app.core.constants import (
     STAGE_FRAME_EXTRACTION,
     STAGE_GENERATION,
     STAGE_METADATA_EXTRACTION,
-    STAGE_OCR,
     STAGE_OBJECT_DETECTION,
+    STAGE_OCR,
     STAGE_RERANKING,
     STAGE_RETRIEVAL,
     STAGE_TRANSCRIPTION,
@@ -199,7 +197,7 @@ class TestPipelineStageNames:
         ]
         for stage in stages:
             assert isinstance(stage, str), f"Stage {stage!r} must be a string"
-            assert len(stage) > 0, f"Stage name must not be empty"
+            assert len(stage) > 0, "Stage name must not be empty"
 
     def test_all_stage_names_unique(self) -> None:
         """Stage names are used as event identifiers — they must be unique."""

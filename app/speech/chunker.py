@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import List, Optional, Callable
+from typing import Callable, List, Optional
 
-from app.domain.entities import TranscriptChunk
 from app.core.constants import TRANSCRIPT_CHUNK_MAX_TOKENS, TRANSCRIPT_OVERLAP_TOKENS
 from app.core.logging import get_logger
+from app.domain.entities import TranscriptChunk
 
 logger = get_logger(__name__)
 

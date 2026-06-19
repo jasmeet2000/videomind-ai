@@ -1,7 +1,7 @@
 import unittest
 
-from app.speech.chunker import chunk_transcript_chunks
 from app.domain.entities import TranscriptChunk
+from app.speech.chunker import chunk_transcript_chunks
 
 
 class TestChunker(unittest.TestCase):

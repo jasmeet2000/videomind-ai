@@ -96,8 +96,8 @@
 |---|---|---|
 | 1 | ✅ Complete | ADR, folder scaffold, memory.md, context.md, AGENTS.md |
 | 2 | ✅ Complete | core/ module fully implemented; 153 tests pass; 91.8% coverage; app boots |
-| 3 | ⏳ Pending | Video processing pipeline |
-| 4 | ⏳ Pending | Speech pipeline |
+| 3 | ✅ Complete | video processing fully implemented (OpenCV/FFmpeg fallback, 91-93% coverage) |
+| 4 | ✅ Complete | speech pipeline fully implemented (Whisper transcription, token-based chunking, language detection, 79-89% coverage) |
 | 5 | ⏳ Pending | Vision pipeline |
 | 6 | ⏳ Pending | Embeddings + Qdrant |
 | 7 | ⏳ Pending | Retrieval layer |
@@ -111,9 +111,8 @@
 
 ## Pending Tasks (Priority Order)
 
-1. **Phase 2:** Implement `app/core/` — config, logging, exceptions, constants, and their unit tests.
-2. **Phase 3:** Implement `app/video/` — FFmpeg audio extraction, OpenCV frame sampling, metadata extraction.
-3. Continue per phase table above.
+1. **Phase 5:** Implement `app/vision/` — OCR adapters (PaddleOCR + EasyOCR), object detection, and scene analyzer.
+2. Continue per phase table above.
 
 ---
 

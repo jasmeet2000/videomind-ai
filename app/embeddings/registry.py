@@ -31,7 +31,7 @@ from app.domain.interfaces import IEmbeddingModel
 # Registry maps model name strings → IEmbeddingModel factory callables
 _REGISTRY: dict[str, type] = {}
 
-_instance: "ModelRegistry | None" = None
+_instance: ModelRegistry | None = None
 
 
 class ModelRegistry:
@@ -42,7 +42,7 @@ class ModelRegistry:
     _loaded_models: dict[str, IEmbeddingModel] = {}
 
     @classmethod
-    def get_instance(cls) -> "ModelRegistry":
+    def get_instance(cls) -> ModelRegistry:
         """
         Return the singleton ModelRegistry instance.
 

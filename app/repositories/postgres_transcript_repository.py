@@ -7,12 +7,9 @@ work without installing asyncpg. Use `connect()` before calling save/get.
 from __future__ import annotations
 
 import json
-from typing import List
 
-import asyncio
-
-from app.domain.interfaces import ITranscriptRepository
 from app.domain.entities import TranscriptChunk
+from app.domain.interfaces import ITranscriptRepository
 
 
 class PostgresTranscriptRepository(ITranscriptRepository):

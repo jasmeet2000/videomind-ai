@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Ensure the lru_cache on get_settings() is cleared between tests
 # so that env-variable-patching tests don't leak state.

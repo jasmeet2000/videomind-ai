@@ -16,12 +16,11 @@ Layer rule: This file may ONLY import from stdlib and third-party packages.
 
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
-
+import uuid
 
 # ---------------------------------------------------------------------------
 # Enumerations

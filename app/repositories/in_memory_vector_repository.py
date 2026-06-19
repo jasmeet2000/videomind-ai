@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import List, Dict, Any
 import math
+from typing import Any, Dict, List
 
-from app.domain.interfaces import IVectorRepository
 from app.domain.entities import SearchResult
+from app.domain.interfaces import IVectorRepository
 
 
 class InMemoryVectorRepository(IVectorRepository):

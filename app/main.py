@@ -24,9 +24,9 @@ Clean Architecture — Dependency Rule:
 
 from __future__ import annotations
 
-import uuid
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -81,9 +81,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
             if db_scheme.startswith("sqlite"):
                 # Use SQLite-based repositories for local/CI
+                from app.repositories.qdrant_vector_repository import QdrantVectorRepository
                 from app.repositories.sqlite_transcript_repository import SQLiteTranscriptRepository
                 from app.repositories.sqlite_video_repository import SQLiteVideoRepository
-                from app.repositories.qdrant_vector_repository import QdrantVectorRepository
 
                 db_path = parsed_db.path or ":memory:"
                 # Normalize Windows absolute paths like /C:/path
@@ -104,9 +104,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 await qdrant_repo.connect()
             else:
                 # Postgres + Qdrant (default)
-                from app.repositories.postgres_transcript_repository import PostgresTranscriptRepository
-                from app.repositories.qdrant_vector_repository import QdrantVectorRepository
+                from app.repositories.postgres_transcript_repository import (
+                    PostgresTranscriptRepository,
+                )
                 from app.repositories.postgres_video_repository import PostgresVideoRepository
+                from app.repositories.qdrant_vector_repository import QdrantVectorRepository
 
                 db_repo = PostgresTranscriptRepository(settings.database_url)
                 qdrant_repo = QdrantVectorRepository(

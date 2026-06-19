@@ -22,10 +22,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
-from app.domain.entities import Frame
+from app.core.constants import DEFAULT_FRAME_SAMPLE_RATE_FPS, FRAME_IMAGE_FORMAT, FRAME_JPEG_QUALITY
 from app.core.exceptions import FrameExtractionError
-from app.core.constants import FRAME_JPEG_QUALITY, FRAME_IMAGE_FORMAT, DEFAULT_FRAME_SAMPLE_RATE_FPS
 from app.core.logging import get_logger
+from app.domain.entities import Frame
 
 logger = get_logger(__name__)
 

@@ -10,11 +10,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
+from app.core.exceptions import VideoProcessingError
+from app.core.logging import get_logger
 from app.video.extractor import AudioExtractor
 from app.video.frames import FrameExtractor
 from app.video.metadata import extract_metadata
-from app.core.logging import get_logger
-from app.core.exceptions import VideoProcessingError
 
 logger = get_logger(__name__)
 

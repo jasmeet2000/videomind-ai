@@ -1,8 +1,8 @@
 import asyncio
 import unittest
 
-from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
 from app.domain.entities import TranscriptChunk
+from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
 
 
 class TestInMemoryTranscriptRepository(unittest.TestCase):

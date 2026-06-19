@@ -1,9 +1,9 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from app.video.processor import VideoProcessor
 from app.video.extractor import AudioExtractor
 from app.video.frames import FrameExtractor
+from app.video.processor import VideoProcessor
 
 
 class TestVideoProcessorOrchestrator(unittest.TestCase):

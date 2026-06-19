@@ -1,9 +1,8 @@
 import unittest
 
+from app.core.exceptions import EmbeddingModelNotFoundError
 from app.embeddings.registry import ModelRegistry
 from app.embeddings.service import EmbeddingService
-import app.embeddings._default_models  # ensures fake model is registered
-from app.core.exceptions import EmbeddingModelNotFoundError
 
 
 class TestEmbeddings(unittest.TestCase):

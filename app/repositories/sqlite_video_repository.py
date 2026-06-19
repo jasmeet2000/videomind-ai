@@ -5,11 +5,11 @@ Uses sqlite3 via asyncio.to_thread for compatibility with the async app.
 """
 from __future__ import annotations
 
-import sqlite3
-import os
 import asyncio
-import uuid
+import os
+import sqlite3
 from typing import Any, Dict, Optional
+import uuid
 
 from app.domain.interfaces import IVideoRepository
 

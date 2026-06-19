@@ -15,14 +15,11 @@ Production requirement:
 from __future__ import annotations
 
 from datetime import datetime
-
 from typing import Tuple
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
-from app.core.constants import SUPPORTED_VIDEO_EXTENSIONS
 from app.domain.entities import VideoStatus
-
 
 # ---------------------------------------------------------------------------
 # Request models

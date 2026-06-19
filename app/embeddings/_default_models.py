@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import List
 import hashlib
+from typing import List
 
 from app.domain.interfaces import IEmbeddingModel
 from app.embeddings.registry import ModelRegistry

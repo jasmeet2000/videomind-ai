@@ -15,10 +15,10 @@ SOLID — Dependency Inversion:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import shutil
 import subprocess
-import json
 
 from app.core.exceptions import VideoProcessingError
 from app.core.logging import get_logger

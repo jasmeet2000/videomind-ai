@@ -39,17 +39,17 @@ class PromptBuilder:
         self._context_chunks: list[SearchResult] = []
         self._user_query: str = ""
 
-    def set_system_instruction(self, instruction: str) -> "PromptBuilder":
+    def set_system_instruction(self, instruction: str) -> PromptBuilder:
         """Set the system-level instruction for the LLM."""
         self._system = instruction
         return self
 
-    def add_context_chunks(self, chunks: list[SearchResult]) -> "PromptBuilder":
+    def add_context_chunks(self, chunks: list[SearchResult]) -> PromptBuilder:
         """Add retrieved context chunks to the prompt."""
         self._context_chunks = chunks
         return self
 
-    def set_user_query(self, query: str) -> "PromptBuilder":
+    def set_user_query(self, query: str) -> PromptBuilder:
         """Set the user's natural language query."""
         self._user_query = query
         return self

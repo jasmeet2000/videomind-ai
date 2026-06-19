@@ -16,10 +16,7 @@ SOLID — Dependency Inversion (test pattern):
 from __future__ import annotations
 
 import os
-from functools import lru_cache
 from unittest.mock import patch
-
-import pytest
 
 from app.core.config import Settings, get_settings
 

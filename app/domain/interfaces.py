@@ -28,8 +28,7 @@ from typing import Any
 
 import numpy as np
 
-from app.domain.entities import Frame, SearchResult, TextBlock, TranscriptChunk
-
+from app.domain.entities import SearchResult, TextBlock, TranscriptChunk
 
 # ---------------------------------------------------------------------------
 # OCR Engine Interface
