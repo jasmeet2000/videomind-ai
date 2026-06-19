@@ -97,6 +97,10 @@ streamlit run frontend/app.py
 | `VideoProcessor` | `video/extractor.py` | Composes FrameExtractor + AudioExtractor |
 | `WhisperService` | `speech/whisper_service.py` | Transcription with word-level timestamps |
 | `OCRService` | `vision/ocr_service.py` | Strategy selector for OCR engines |
+| `PaddleOCRAdapter` | `vision/paddle_ocr.py` | Adapter for PaddleOCR wrapping into IOCREngine |
+| `EasyOCRAdapter` | `vision/easy_ocr.py` | Adapter for EasyOCR wrapping into IOCREngine |
+| `ObjectDetector` | `vision/object_detector.py` | Object detector using Mobilenet-SSD model |
+| `SceneAnalyzer` | `vision/scene_analyzer.py` | Scene classifier using Mobilenet model |
 | `EmbeddingService` | `embeddings/service.py` | Encodes text → vectors |
 | `ModelRegistry` | `embeddings/registry.py` | Singleton + Factory for embedding models |
 | `HybridRetriever` | `retrieval/hybrid.py` | Dense + BM25 sparse fusion |

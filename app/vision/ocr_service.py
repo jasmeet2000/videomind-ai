@@ -35,7 +35,12 @@ class OCRService:
     Falls back to EasyOCR if PaddleOCR confidence is below threshold.
     """
 
-    def __init__(self, engine: IOCREngine, fallback_engine: IOCREngine | None = None, confidence_threshold: float = 0.7) -> None:
+    def __init__(
+        self,
+        engine: IOCREngine,
+        fallback_engine: IOCREngine | None = None,
+        confidence_threshold: float = 0.7,
+    ) -> None:
         """
         Args:
             engine: The primary IOCREngine implementation to use.
@@ -76,3 +81,45 @@ class OCRService:
             return primary_blocks
         except Exception:
             return primary_blocks
+
+
+def get_ocr_service() -> OCRService:
+    """
+    Dependency Injection / Strategy Factory:
+    Loads OCR engines based on application settings.
+    """
+    from app.core.config import get_settings
+    from app.core.logging import get_logger
+    from app.vision.easy_ocr import EasyOCRAdapter
+    from app.vision.paddle_ocr import PaddleOCRAdapter
+
+    settings = get_settings()
+    logger = get_logger(__name__)
+
+    # Strategy selector registry
+    engines = {
+        "paddleocr": PaddleOCRAdapter,
+        "easyocr": EasyOCRAdapter,
+    }
+
+    primary_name = settings.ocr_engine.lower()
+    primary_cls = engines.get(primary_name)
+    if not primary_cls:
+        logger.warning(
+            "Configured OCR engine not found, falling back to PaddleOCR",
+            engine=primary_name,
+        )
+        primary_cls = PaddleOCRAdapter
+
+    primary_engine = primary_cls()
+
+    # Configure EasyOCR as fallback if the primary engine is PaddleOCR
+    fallback_engine = None
+    if primary_name == "paddleocr":
+        fallback_engine = EasyOCRAdapter()
+
+    return OCRService(
+        engine=primary_engine,
+        fallback_engine=fallback_engine,
+        confidence_threshold=settings.ocr_confidence_threshold,
+    )

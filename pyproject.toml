@@ -42,13 +42,16 @@ select = [
     "UP",   # pyupgrade
     "N",    # pep8-naming
     "SIM",  # flake8-simplify
-    "TCH",  # flake8-type-checking
+    "TC",   # flake8-type-checking (renamed from TCH)
     "ANN",  # flake8-annotations (type hints enforcement)
 ]
 ignore = [
     "ANN101",  # Missing type annotation for `self`
     "ANN102",  # Missing type annotation for `cls`
     "ANN401",  # Dynamically typed expressions (Any) are disallowed
+    "TC001",   # Move app import into TYPE_CHECKING — adds overhead without benefit here
+    "TC002",   # Move third-party import into TYPE_CHECKING — numpy/PIL used at runtime
+    "N812",    # Lowercase `functional` as `F` — standard torch/torchvision convention
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -87,9 +90,6 @@ source = ["app"]
 omit = [
     "app/main.py",              # Tested via TestClient
     "*/__init__.py",
-    # Phase 5 stubs
-    "app/vision/object_detector.py",
-    "app/vision/scene_analyzer.py",
     # Phase 6 stubs — DB repositories
     "app/repositories/postgres_*.py",
     "app/repositories/qdrant_*.py",

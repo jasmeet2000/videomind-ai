@@ -98,7 +98,7 @@
 | 2 | ✅ Complete | core/ module fully implemented; 153 tests pass; 91.8% coverage; app boots |
 | 3 | ✅ Complete | video processing fully implemented (OpenCV/FFmpeg fallback, 91-93% coverage) |
 | 4 | ✅ Complete | speech pipeline fully implemented (Whisper transcription, token-based chunking, language detection, 79-89% coverage) |
-| 5 | ⏳ Pending | Vision pipeline |
+| 5 | ✅ Complete | OCR adapters (PaddleOCR/EasyOCR), object detection, scene analyzer fully implemented and tested (86.78% total coverage) |
 | 6 | ⏳ Pending | Embeddings + Qdrant |
 | 7 | ⏳ Pending | Retrieval layer |
 | 8 | ⏳ Pending | LLM integration + RAG |
@@ -111,7 +111,7 @@
 
 ## Pending Tasks (Priority Order)
 
-1. **Phase 5:** Implement `app/vision/` — OCR adapters (PaddleOCR + EasyOCR), object detection, and scene analyzer.
+1. **Phase 6:** Implement `app/embeddings/` — Embeddings generation and Qdrant vector repository integration.
 2. Continue per phase table above.
 
 ---

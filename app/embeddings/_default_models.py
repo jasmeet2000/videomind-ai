@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-from typing import List
 
 from app.domain.interfaces import IEmbeddingModel
 from app.embeddings.registry import ModelRegistry
@@ -14,8 +13,8 @@ class FakeEmbeddingModel(IEmbeddingModel):
         self._dim = dimension
         self._name = model_name
 
-    def encode(self, texts: List[str], batch_size: int = 32) -> List[List[float]]:
-        vectors: List[List[float]] = []
+    def encode(self, texts: list[str], batch_size: int = 32) -> list[list[float]]:
+        vectors: list[list[float]] = []
         for t in texts:
             h = hashlib.sha256((t or "").encode("utf-8")).digest()
             vec = [float(b) / 255.0 for b in h[: self._dim]]

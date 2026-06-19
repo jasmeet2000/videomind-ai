@@ -58,12 +58,25 @@ async def get_db():
 #         )
 #     return _qdrant_client
 
+_qdrant_client = None
+
 def get_qdrant_client():
     """
-    Stub: returns a Qdrant client.
-    Phase 6: Replace with real QdrantClient singleton.
+    Return a singleton Qdrant vector repository adapter.
+
+    This returns an instance of QdrantVectorRepository which encapsulates
+    the Python client or HTTP fallback and exposes async `upsert` and
+    `search` methods used by the VectorRepository.
     """
-    return None
+    global _qdrant_client
+    if _qdrant_client is not None:
+        return _qdrant_client
+
+    # Lazy-import to avoid importing heavy optional deps at module import time
+    from app.repositories.qdrant_vector_repository import QdrantVectorRepository
+
+    _qdrant_client = QdrantVectorRepository(host=settings.qdrant_host, port=settings.qdrant_port, collection=settings.qdrant_collection_name)
+    return _qdrant_client
 
 
 # ---------------------------------------------------------------------------

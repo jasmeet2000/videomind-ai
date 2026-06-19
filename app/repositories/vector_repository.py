@@ -25,15 +25,28 @@ from app.domain.interfaces import IVectorRepository
 class VectorRepository(IVectorRepository):
     """Qdrant-backed repository for vector upsert and similarity search."""
 
-    def __init__(self, qdrant_client) -> None:
-        self.client = qdrant_client
+    def __init__(self, qdrant_adapter) -> None:
+        """qdrant_adapter should implement the async methods `upsert(points, collection)` and `search(vector, collection, video_id, top_k)`.
+
+        Typically this is an instance of QdrantVectorRepository.
+        """
+        self._adapter = qdrant_adapter
 
     async def upsert(
         self,
         chunks: list[dict[str, Any]],
         collection: str,
     ) -> None:
-        raise NotImplementedError("Phase 6: Implement Qdrant batch upsert")
+        """Convert incoming chunk dicts to Qdrant point format and delegate to adapter."""
+        points = []
+        for c in chunks:
+            # Expecting each chunk dict to contain 'id', 'vector', and 'payload'
+            pid = c.get("id")
+            vec = c.get("vector")
+            payload = c.get("payload", {}) or {}
+            points.append({"id": pid, "vector": vec, "payload": payload})
+
+        await self._adapter.upsert(points, collection=collection)
 
     async def search(
         self,
@@ -42,4 +55,5 @@ class VectorRepository(IVectorRepository):
         video_id: str,
         top_k: int,
     ) -> list[SearchResult]:
-        raise NotImplementedError("Phase 6: Implement Qdrant ANN search with filter")
+        """Delegate search to the underlying Qdrant adapter, supplying video_id for filtering."""
+        return await self._adapter.search(query_vector, collection=collection, video_id=video_id, top_k=top_k)

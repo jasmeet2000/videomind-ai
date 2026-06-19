@@ -61,8 +61,26 @@ class QdrantVectorRepository:
         collection = collection or self.collection
         await self.connect()
         if not self._use_http:
+            # Convert simple dicts into qdrant-client PointStruct objects when available
+            qdrant_points = points
+            try:
+                try:
+                    from qdrant_client.http import models as qdrant_models  # type: ignore
+                except Exception:
+                    from qdrant_client import models as qdrant_models  # type: ignore
+
+                qdrant_points = []
+                for p in points:
+                    pid = p.get("id")
+                    vec = p.get("vector")
+                    payload = p.get("payload", {}) or {}
+                    qdrant_points.append(qdrant_models.PointStruct(id=pid, vector=vec, payload=payload))
+            except Exception:
+                # If constructing PointStructs fails, fall back to raw dicts
+                qdrant_points = points
+
             # Blocking call — run in a thread
-            await asyncio.to_thread(self._client.upsert, collection_name=collection, points=points)
+            await asyncio.to_thread(self._client.upsert, collection_name=collection, points=qdrant_points)
         else:
             url = f"{self._base_url}/collections/{collection}/points?wait=true"
             await asyncio.to_thread(self._client.put, url, json={"points": points}, timeout=15)
@@ -72,7 +90,32 @@ class QdrantVectorRepository:
         await self.connect()
         results: List[SearchResult] = []
         if not self._use_http:
-            resp = await asyncio.to_thread(self._client.search, collection_name=collection, query_vector=vector, limit=top_k, with_payload=True)
+            # Build search kwargs and optionally attach a Filter when video_id is provided
+            kwargs: dict = {"collection_name": collection, "query_vector": vector, "limit": top_k, "with_payload": True}
+            if video_id is not None:
+                filter_obj = None
+                try:
+                    # qdrant-client v1+ exposes models under http.models
+                    try:
+                        from qdrant_client.http import models as qdrant_models  # type: ignore
+                    except Exception:
+                        from qdrant_client import models as qdrant_models  # type: ignore
+
+                    filter_obj = qdrant_models.Filter(
+                        must=[
+                            qdrant_models.FieldCondition(
+                                key="video_id",
+                                match=qdrant_models.MatchValue(value=video_id),
+                            )
+                        ]
+                    )
+                except Exception:
+                    filter_obj = None
+
+                if filter_obj is not None:
+                    kwargs["filter"] = filter_obj
+
+            resp = await asyncio.to_thread(self._client.search, **kwargs)
             for hit in resp:
                 payload = getattr(hit, "payload", {}) or {}
                 results.append(
@@ -91,6 +134,8 @@ class QdrantVectorRepository:
         else:
             url = f"{self._base_url}/collections/{collection}/points/search"
             payload = {"vector": vector, "top": top_k}
+            if video_id is not None:
+                payload["filter"] = {"must": [{"key": "video_id", "match": {"value": video_id}}]}
             resp = await asyncio.to_thread(self._client.post, url, json=payload, timeout=15)
             resp.raise_for_status()
             data = resp.json()
