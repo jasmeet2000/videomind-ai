@@ -4,7 +4,7 @@ VideoMind AI — Card Components
 Renderers for search results and chat bubbles.
 """
 
-from typing import Dict, Any
+from typing import Any
 
 
 def get_badge_class(modality: str) -> str:
@@ -19,7 +19,7 @@ def get_badge_class(modality: str) -> str:
     return "vm-badge-speech"
 
 
-def render_search_result(result: Dict[str, Any]) -> str:
+def render_search_result(result: dict[str, Any]) -> str:
     """Generate HTML for a single search result card."""
     modality = result.get("modality", "speech")
     badge_class = get_badge_class(modality)
@@ -68,7 +68,7 @@ def render_chat_user(text: str) -> str:
     """
 
 
-def render_chat_assistant(text: str, sources: list[Dict[str, Any]] = None) -> str:
+def render_chat_assistant(text: str, sources: list[dict[str, Any]] = None) -> str:
     """Generate HTML for an assistant chat bubble with source citations."""
     sources_html = ""
     if sources:
@@ -80,16 +80,16 @@ def render_chat_assistant(text: str, sources: list[Dict[str, Any]] = None) -> st
             if start_sec in seen:
                 continue
             seen.add(start_sec)
-            
+
             label = s.get("timestamp_label", "00:00")
             # Note: onclick calls our injected JS function seekVideo()
             sources_html += f"""
             <button class="vm-timestamp" onclick="window.parent.seekVideo({start_sec})"
-                    title="Source: {s.get('modality', 'Unknown')}">
+                    title="Source: {s.get("modality", "Unknown")}">
                 ▶ {label}
             </button>
             """
-        sources_html += '</div>'
+        sources_html += "</div>"
 
     # Convert simple newlines to HTML br for chat display
     formatted_text = text.replace("\n", "<br>")

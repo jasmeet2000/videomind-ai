@@ -50,7 +50,6 @@ class EmbeddingService:
             return []
         return self.model.encode(texts)
 
-
     @property
     def dimension(self) -> int:
         """Return the dimensionality of the embedding model's output vectors."""

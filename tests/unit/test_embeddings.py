@@ -32,7 +32,6 @@ class FakeEmbeddingModel(IEmbeddingModel):
 
 
 class TestEmbeddings(unittest.TestCase):
-
     def setUp(self):
         """Register the fake model and clear any cached instance."""
         ModelRegistry.register("fake", FakeEmbeddingModel)

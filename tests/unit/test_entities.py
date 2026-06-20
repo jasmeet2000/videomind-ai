@@ -58,6 +58,7 @@ class TestVideo:
 
     def test_created_at_set_on_init(self) -> None:
         from datetime import datetime
+
         assert isinstance(Video().created_at, datetime)
 
 
@@ -138,4 +139,5 @@ class TestPipelineEvent:
 
     def test_timestamp_set_on_init(self) -> None:
         from datetime import datetime
+
         assert isinstance(PipelineEvent().timestamp, datetime)

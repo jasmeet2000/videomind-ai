@@ -79,6 +79,7 @@ class TestHealthEndpoint:
 
     def test_health_request_id_is_uuid_format(self, client: TestClient) -> None:
         import uuid
+
         response = client.get("/health")
         request_id = response.headers["x-request-id"]
         # Should not raise ValueError if it's a valid UUID
@@ -147,9 +148,7 @@ class TestExceptionHandlers:
         assert "Traceback" not in str(body)
         assert "traceback" not in str(body)
 
-    def test_domain_exception_message_is_human_readable(
-        self, client: TestClient
-    ) -> None:
+    def test_domain_exception_message_is_human_readable(self, client: TestClient) -> None:
         app = create_app()
 
         @app.get("/test/not-found")

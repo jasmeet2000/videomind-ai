@@ -105,9 +105,20 @@ class SceneAnalyzer:
                 return "whiteboard"
             elif any(k in category_name for k in ["notebook", "laptop", "keyboard", "computer"]):
                 return "code editor"
-            elif any(k in category_name for k in [  # noqa: E501
-                "valley", "cliff", "alp", "volcano", "shore", "lake", "forest", "tree", "mountain"
-            ]):
+            elif any(
+                k in category_name
+                for k in [  # noqa: E501
+                    "valley",
+                    "cliff",
+                    "alp",
+                    "volcano",
+                    "shore",
+                    "lake",
+                    "forest",
+                    "tree",
+                    "mountain",
+                ]
+            ):
                 return "outdoor"
             else:
                 return "indoor"

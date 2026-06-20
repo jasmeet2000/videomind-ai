@@ -27,7 +27,16 @@ async def test_dense_retriever_delegates(mock_vector_repo):
     retriever = DenseRetriever(vector_repo=mock_vector_repo, collection="test_col")
 
     mock_vector_repo.search.return_value = [
-        SearchResult(chunk_id="1", video_id="v1", modality="speech", text="hello", score=0.9, start_seconds=0, end_seconds=1, metadata={})
+        SearchResult(
+            chunk_id="1",
+            video_id="v1",
+            modality="speech",
+            text="hello",
+            score=0.9,
+            start_seconds=0,
+            end_seconds=1,
+            metadata={},
+        )
     ]
 
     results = await retriever.search(query_vector=[0.1, 0.2], video_id="v1", top_k=5)
@@ -49,9 +58,19 @@ async def test_sparse_retriever_scores_correctly(mock_transcript_repo):
     retriever = BM25SparseRetriever(transcript_repo=mock_transcript_repo)
 
     chunks = [
-        TranscriptChunk(id="c1", video_id="v1", text="the quick brown fox", start_seconds=0, end_seconds=1),
-        TranscriptChunk(id="c2", video_id="v1", text="jumps over the lazy dog", start_seconds=1, end_seconds=2),
-        TranscriptChunk(id="c3", video_id="v1", text="a completely unrelated sentence", start_seconds=2, end_seconds=3),
+        TranscriptChunk(
+            id="c1", video_id="v1", text="the quick brown fox", start_seconds=0, end_seconds=1
+        ),
+        TranscriptChunk(
+            id="c2", video_id="v1", text="jumps over the lazy dog", start_seconds=1, end_seconds=2
+        ),
+        TranscriptChunk(
+            id="c3",
+            video_id="v1",
+            text="a completely unrelated sentence",
+            start_seconds=2,
+            end_seconds=3,
+        ),
     ]
     mock_transcript_repo.get_by_video_id.return_value = chunks
 
@@ -76,14 +95,36 @@ async def test_hybrid_retriever_rrf_fusion(mock_vector_repo, mock_transcript_rep
 
     # Dense results: c1 (rank 1), c2 (rank 2)
     mock_vector_repo.search.return_value = [
-        SearchResult(chunk_id="c1", video_id="v1", modality="speech", text="dense1", score=0.9, start_seconds=0, end_seconds=1, metadata={}),
-        SearchResult(chunk_id="c2", video_id="v1", modality="speech", text="dense2", score=0.8, start_seconds=1, end_seconds=2, metadata={})
+        SearchResult(
+            chunk_id="c1",
+            video_id="v1",
+            modality="speech",
+            text="dense1",
+            score=0.9,
+            start_seconds=0,
+            end_seconds=1,
+            metadata={},
+        ),
+        SearchResult(
+            chunk_id="c2",
+            video_id="v1",
+            modality="speech",
+            text="dense2",
+            score=0.8,
+            start_seconds=1,
+            end_seconds=2,
+            metadata={},
+        ),
     ]
 
     # Sparse results: c2 (rank 1), c3 (rank 2)
     mock_transcript_repo.get_by_video_id.return_value = [
-        TranscriptChunk(id="c2", video_id="v1", text="sparse match match here", start_seconds=1, end_seconds=2),
-        TranscriptChunk(id="c3", video_id="v1", text="another match here", start_seconds=2, end_seconds=3),
+        TranscriptChunk(
+            id="c2", video_id="v1", text="sparse match match here", start_seconds=1, end_seconds=2
+        ),
+        TranscriptChunk(
+            id="c3", video_id="v1", text="another match here", start_seconds=2, end_seconds=3
+        ),
     ]
 
     results = await hybrid.search(query="match", query_vector=[0.1], video_id="v1", top_k=10)
@@ -115,9 +156,36 @@ def test_cross_encoder_reranker():
     reranker._model = mock_model
 
     results = [
-        SearchResult(chunk_id="c1", video_id="v1", modality="speech", text="bad match", score=0.9, start_seconds=0, end_seconds=1, metadata={}),
-        SearchResult(chunk_id="c2", video_id="v1", modality="speech", text="perfect match", score=0.8, start_seconds=1, end_seconds=2, metadata={}),
-        SearchResult(chunk_id="c3", video_id="v1", modality="speech", text="okay match", score=0.7, start_seconds=2, end_seconds=3, metadata={})
+        SearchResult(
+            chunk_id="c1",
+            video_id="v1",
+            modality="speech",
+            text="bad match",
+            score=0.9,
+            start_seconds=0,
+            end_seconds=1,
+            metadata={},
+        ),
+        SearchResult(
+            chunk_id="c2",
+            video_id="v1",
+            modality="speech",
+            text="perfect match",
+            score=0.8,
+            start_seconds=1,
+            end_seconds=2,
+            metadata={},
+        ),
+        SearchResult(
+            chunk_id="c3",
+            video_id="v1",
+            modality="speech",
+            text="okay match",
+            score=0.7,
+            start_seconds=2,
+            end_seconds=3,
+            metadata={},
+        ),
     ]
 
     reranked = reranker.rerank(query="perfect", results=results, top_k=2)
@@ -126,32 +194,37 @@ def test_cross_encoder_reranker():
     assert reranked[0].chunk_id == "c2"  # highest score 0.9
     assert reranked[1].chunk_id == "c3"  # score 0.5
 
+
 def test_cross_encoder_reranker_empty_results():
     try:
         from app.retrieval.reranker import CrossEncoderReranker
     except ImportError:
         pytest.skip("sentence-transformers not installed")
-    
+
     reranker = CrossEncoderReranker()
     assert reranker.rerank("query", []) == []
 
+
 def test_cross_encoder_reranker_import_error():
-    from app.retrieval.reranker import CrossEncoderReranker
     from unittest.mock import patch
-    
+
+    from app.retrieval.reranker import CrossEncoderReranker
+
     reranker = CrossEncoderReranker()
-    
-    with patch("builtins.__import__", side_effect=ImportError("No module named 'sentence_transformers'")):
-        with pytest.raises(RuntimeError, match="sentence-transformers not installed"):
-            reranker._ensure_model()
+
+    with patch(
+        "builtins.__import__", side_effect=ImportError("No module named 'sentence_transformers'")
+    ), pytest.raises(RuntimeError, match="sentence-transformers not installed"):
+        reranker._ensure_model()
+
 
 def test_cross_encoder_reranker_general_error():
-    from app.retrieval.reranker import CrossEncoderReranker
     from unittest.mock import patch
-    
+
+    from app.retrieval.reranker import CrossEncoderReranker
+
     reranker = CrossEncoderReranker()
-    
+
     with patch("builtins.__import__", side_effect=Exception("Unexpected error")):
         with pytest.raises(Exception, match="Unexpected error"):
             reranker._ensure_model()
-

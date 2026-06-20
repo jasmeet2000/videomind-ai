@@ -15,12 +15,14 @@ class TestIngestVideoUseCase(unittest.TestCase):
         video_processor.process.return_value = {"audio_path": "audio.wav", "metadata": {}}
 
         whisper_service = MagicMock(spec=WhisperService)
-        chunks = [TranscriptChunk(video_id='v', text='a', start_seconds=0.0, end_seconds=1.0)]
+        chunks = [TranscriptChunk(video_id="v", text="a", start_seconds=0.0, end_seconds=1.0)]
         whisper_service.transcribe.return_value = chunks
 
         repo = InMemoryTranscriptRepository()
 
-        usecase = IngestVideoUseCase(video_processor=video_processor, whisper_service=whisper_service, transcript_repo=repo)
+        usecase = IngestVideoUseCase(
+            video_processor=video_processor, whisper_service=whisper_service, transcript_repo=repo
+        )
         res = asyncio.run(usecase.execute("video.mp4", "v"))
 
         self.assertEqual(res["ingested_chunks"], 1)
@@ -30,5 +32,5 @@ class TestIngestVideoUseCase(unittest.TestCase):
         self.assertEqual(len(got), 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

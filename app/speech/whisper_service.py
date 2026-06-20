@@ -18,7 +18,6 @@ DESIGN PATTERN — Strategy:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 from app.core.config import get_settings
 from app.core.exceptions import TranscriptionError
@@ -50,7 +49,7 @@ class WhisperService:
         self.language = get_settings().whisper_language
         self._whisper_module = None
 
-    def transcribe(self, audio_path: str, video_id: str) -> List[TranscriptChunk]:
+    def transcribe(self, audio_path: str, video_id: str) -> list[TranscriptChunk]:
         """
         Transcribe an audio file and return timestamped chunks.
 
@@ -99,7 +98,7 @@ class WhisperService:
             segments = getattr(result, "segments", []) or []
             detected_language = getattr(result, "language", self.language)
 
-        chunks: List[TranscriptChunk] = []
+        chunks: list[TranscriptChunk] = []
         for seg in segments:
             if isinstance(seg, dict):
                 text = seg.get("text", "").strip()
@@ -116,7 +115,11 @@ class WhisperService:
                 text = getattr(seg, "text", "").strip()
                 start = float(getattr(seg, "start", 0.0))
                 end = float(getattr(seg, "end", 0.0))
-                confidence = float(getattr(seg, "confidence", 0.0)) if getattr(seg, "confidence", None) is not None else 0.0
+                confidence = (
+                    float(getattr(seg, "confidence", 0.0))
+                    if getattr(seg, "confidence", None) is not None
+                    else 0.0
+                )
 
             chunk = TranscriptChunk(
                 video_id=video_id,
@@ -132,6 +135,7 @@ class WhisperService:
         try:
             from app.core.constants import TRANSCRIPT_CHUNK_MAX_TOKENS, TRANSCRIPT_OVERLAP_TOKENS
             from app.speech.chunker import chunk_transcript_chunks
+
             return chunk_transcript_chunks(
                 chunks,
                 max_tokens=TRANSCRIPT_CHUNK_MAX_TOKENS,

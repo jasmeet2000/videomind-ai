@@ -1,6 +1,7 @@
 """
 Unit tests for QdrantVectorRepository HTTP fallback behavior (mocked session).
 """
+
 import asyncio
 import unittest
 
@@ -32,11 +33,12 @@ class FakeSession:
     def post(self, url, json=None, timeout=None):
         self.post_called = True
         self.last_post = {"url": url, "json": json}
-        return FakeResponse({"result": [{"id": "1", "payload": {"video_id": "v1", "text": "hi"}, "score": 0.9}]})
+        return FakeResponse(
+            {"result": [{"id": "1", "payload": {"video_id": "v1", "text": "hi"}, "score": 0.9}]}
+        )
 
 
 class TestQdrantAdapterHTTP(unittest.TestCase):
-
     def test_upsert_uses_http_put(self):
         repo = QdrantVectorRepository(host="localhost", port=6333, collection="col")
         repo._use_http = True

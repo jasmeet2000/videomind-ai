@@ -27,5 +27,5 @@ class TestHealthEndpoints(unittest.TestCase):
         self.assertEqual(data["dependencies"]["postgresql"], "not_configured")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

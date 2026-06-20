@@ -47,16 +47,18 @@ async def search_video(payload: SearchRequest, request: Request):
     items = []
     for r in results:
         start_m, start_s = divmod(int(r.get("start_seconds", 0)), 60)
-        items.append(SearchResultItem(
-            chunk_id=r.get("chunk_id", ""),
-            video_id=r.get("video_id", payload.video_id),
-            modality=r.get("modality", "audio"),
-            text=r.get("text", ""),
-            score=r.get("score", 0.0),
-            start_seconds=r.get("start_seconds", 0.0),
-            end_seconds=r.get("end_seconds"),
-            timestamp_label=f"{start_m:02d}:{start_s:02d}",
-        ))
+        items.append(
+            SearchResultItem(
+                chunk_id=r.get("chunk_id", ""),
+                video_id=r.get("video_id", payload.video_id),
+                modality=r.get("modality", "audio"),
+                text=r.get("text", ""),
+                score=r.get("score", 0.0),
+                start_seconds=r.get("start_seconds", 0.0),
+                end_seconds=r.get("end_seconds"),
+                timestamp_label=f"{start_m:02d}:{start_s:02d}",
+            )
+        )
 
     return SearchResponse(
         query=payload.query,

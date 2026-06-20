@@ -4,6 +4,7 @@ VideoMind AI — Prompt Builder
 Constructs prompts for the LLM using the generated context and user query.
 """
 
+
 class PromptBuilder:
     """Templates and builds prompts for Retrieval-Augmented Generation."""
 

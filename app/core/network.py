@@ -1,6 +1,7 @@
 """
 Network utilities for basic connectivity checks used by readiness probes.
 """
+
 from __future__ import annotations
 
 from contextlib import closing

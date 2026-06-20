@@ -1,14 +1,14 @@
-import pytest
-import sys
-from unittest.mock import patch, AsyncMock, MagicMock
 from contextlib import ExitStack
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from app.api.dependencies.services import (
-    get_db,
-    get_qdrant_client,
-    get_ingest_use_case,
-    get_search_use_case,
     get_chat_use_case,
+    get_db,
+    get_ingest_use_case,
+    get_qdrant_client,
+    get_search_use_case,
 )
 
 
@@ -19,7 +19,7 @@ async def test_get_db_with_mocked_pool():
     mock_acquire_context = AsyncMock()
     mock_acquire_context.__aenter__.return_value = mock_conn
     mock_acquire_context.__aexit__.return_value = None
-    
+
     mock_pool = MagicMock()
     mock_pool.acquire.return_value = mock_acquire_context
 
@@ -27,34 +27,39 @@ async def test_get_db_with_mocked_pool():
     mock_asyncpg = MagicMock()
     mock_asyncpg.create_pool = AsyncMock(return_value=mock_pool)
 
-    with patch.dict("sys.modules", {"asyncpg": mock_asyncpg}), \
-         patch("app.api.dependencies.services.settings") as mock_settings:
-        
+    with (
+        patch.dict("sys.modules", {"asyncpg": mock_asyncpg}),
+        patch("app.api.dependencies.services.settings") as mock_settings,
+    ):
         mock_settings.database_url = "postgresql://user:pass@localhost:5432/db"
-        
+
         # Reset global to allow recreation
         import app.api.dependencies.services as srv
+
         srv._db_pool = None
-        
+
         # We must use async for to consume the async generator
         async for conn in get_db():
             assert conn is mock_conn
-            
+
         mock_asyncpg.create_pool.assert_called_once()
 
 
 def test_get_qdrant_client_singleton():
     """Test that get_qdrant_client returns the same instance on multiple calls."""
-    with patch("app.repositories.qdrant_vector_repository.QdrantVectorRepository") as mock_qdrant_cls:
+    with patch(
+        "app.repositories.qdrant_vector_repository.QdrantVectorRepository"
+    ) as mock_qdrant_cls:
         mock_instance = mock_qdrant_cls.return_value
-        
+
         # Reset global state
         import app.api.dependencies.services as srv
+
         srv._qdrant_client = None
-        
+
         client1 = get_qdrant_client()
         client2 = get_qdrant_client()
-        
+
         assert client1 is mock_instance
         assert client2 is mock_instance
         # Should only be instantiated once
@@ -88,7 +93,7 @@ def test_dependency_injection_wiring():
         "app.generation.context_builder.ContextBuilder",
         "app.generation.prompt_builder.PromptBuilder",
     ]
-    
+
     with ExitStack() as stack:
         for p in patches:
             stack.enter_context(patch(p))

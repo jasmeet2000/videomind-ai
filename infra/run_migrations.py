@@ -6,11 +6,12 @@ Migration runner supporting Postgres and SQLite.
   sqlite3.executemany (executescript).
 - Otherwise it falls back to the original Postgres behavior using psycopg2.
 """
+
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
+import sys
 from urllib.parse import urlparse
 
 MIGRATIONS_DIR = Path(__file__).parent / "migrations"
@@ -45,6 +46,7 @@ def run_migrations(database_url: str) -> int:
 
         try:
             import sqlite3
+
             conn = sqlite3.connect(db_path)
             cur = conn.cursor()
             for path in sql_files:

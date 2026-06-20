@@ -5,13 +5,14 @@ This implementation uses the standard library sqlite3 in a thread via
 asyncio.to_thread so it remains compatible with the asynchronous
 application code without requiring async DB drivers.
 """
+
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import sqlite3
-from typing import Optional
 import uuid
 
 from app.domain.entities import TranscriptChunk
@@ -23,7 +24,7 @@ class SQLiteTranscriptRepository(ITranscriptRepository):
 
     def __init__(self, db_path: str = "data\videomind.db") -> None:
         self.db_path = db_path
-        self._conn: Optional[sqlite3.Connection] = None
+        self._conn: sqlite3.Connection | None = None
 
     async def connect(self) -> None:
         if self._conn is not None:
@@ -57,7 +58,9 @@ class SQLiteTranscriptRepository(ITranscriptRepository):
             );
             """
         )
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_transcript_video_id ON transcript_chunks(video_id);")
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_transcript_video_id ON transcript_chunks(video_id);"
+        )
         self._conn.commit()
 
     async def close(self) -> None:
@@ -79,7 +82,18 @@ class SQLiteTranscriptRepository(ITranscriptRepository):
                 text = getattr(c, "text", getattr(c, "content", ""))
                 embedding = getattr(c, "embedding", None)
                 embedding_json = json.dumps(embedding) if embedding is not None else None
-                rows.append((cid, str(c.video_id), text, float(c.start_seconds), float(c.end_seconds) if getattr(c, "end_seconds", None) is not None else 0.0, embedding_json))
+                rows.append(
+                    (
+                        cid,
+                        str(c.video_id),
+                        text,
+                        float(c.start_seconds),
+                        float(c.end_seconds)
+                        if getattr(c, "end_seconds", None) is not None
+                        else 0.0,
+                        embedding_json,
+                    )
+                )
 
             cur.executemany(
                 """
@@ -120,10 +134,8 @@ class SQLiteTranscriptRepository(ITranscriptRepository):
                     end_seconds=float(r[4]),
                 )
                 # attach embedding attribute if the dataclass doesn't define it
-                try:
+                with contextlib.suppress(Exception):
                     tc.embedding = embedding
-                except Exception:
-                    pass
                 result.append(tc)
             return result
 

@@ -19,7 +19,7 @@ Clean Architecture — Application Layer:
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from app.core.logging import get_logger
 from app.domain.interfaces import ITranscriptRepository, IVideoRepository
@@ -50,7 +50,7 @@ class IngestVideoUseCase:
         self.transcript_repo = transcript_repo or InMemoryTranscriptRepository()
         self.video_repo = video_repo
 
-    async def execute(self, video_path: str, video_id: str) -> Dict[str, Any]:
+    async def execute(self, video_path: str, video_id: str) -> dict[str, Any]:
         """Run metadata, audio extraction, transcription, and persist chunks.
 
         Returns a summary dict with counts and metadata.

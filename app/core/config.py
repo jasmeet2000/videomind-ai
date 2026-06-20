@@ -74,18 +74,22 @@ class Settings(BaseSettings):
 
     # --- Readiness checks ---
     # When true, /health/ready performs TCP connectivity checks to DB and Qdrant.
-    check_readiness: bool = Field(default=False, description="Enable readiness connectivity checks (used in Phase 6/CI)")
+    check_readiness: bool = Field(
+        default=False, description="Enable readiness connectivity checks (used in Phase 6/CI)"
+    )
 
     # --- Retrieval ---
     dense_retrieval_top_k: int = Field(default=10)
     rerank_top_k: int = Field(default=5)
-    hybrid_alpha: float = Field(default=0.7, description="Weight for dense vs sparse (0=sparse, 1=dense).")
+    hybrid_alpha: float = Field(
+        default=0.7, description="Weight for dense vs sparse (0=sparse, 1=dense)."
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore",          # Ignore extra env vars (12-Factor: permissive)
+        extra="ignore",  # Ignore extra env vars (12-Factor: permissive)
     )
 
 

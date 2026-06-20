@@ -1,7 +1,7 @@
 """
 VideoMind AI — Context Builder
 ================================
-Takes retrieved SearchResult objects and formats them into a cohesive 
+Takes retrieved SearchResult objects and formats them into a cohesive
 string for the LLM to process.
 """
 
@@ -18,7 +18,7 @@ class ContextBuilder:
 
     def build_context(self, results: list[SearchResult]) -> str:
         """
-        Takes a list of SearchResults, sorts them chronologically, 
+        Takes a list of SearchResults, sorts them chronologically,
         deduplicates overlaps, and formats them into a single string.
         """
         if not results:
@@ -39,9 +39,9 @@ class ContextBuilder:
 
             modality_str = res.modality.upper()
             content = res.text.strip()
-            
+
             # Simple deduplication could go here (e.g., skip identical content)
-            
+
             chunk_str = f"{time_str} ({modality_str}): {content}"
             chunk_words = len(chunk_str.split())
 

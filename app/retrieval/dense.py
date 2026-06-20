@@ -34,7 +34,7 @@ class DenseRetriever(IDenseRetriever):
         Search for the top-k most similar chunks by vector similarity.
         """
         return await self.vector_repo.search(
-            query_vector=query_vector,
+            vector=query_vector,
             collection=self.collection,
             video_id=video_id,
             top_k=top_k,

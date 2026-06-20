@@ -15,12 +15,12 @@ from app.vision.scene_analyzer import SceneAnalyzer
 
 # Canonical category list aligned with the domain-mapping keywords in classify()
 _CATEGORIES = [
-    "background",     # 0
-    "screen",         # 1  → "presentation slide"
-    "blackboard",     # 2  → "whiteboard"
-    "notebook",       # 3  → "code editor"
-    "lake",           # 4  → "outdoor"
-    "dog",            # 5  → "indoor" (default)
+    "background",  # 0
+    "screen",  # 1  → "presentation slide"
+    "blackboard",  # 2  → "whiteboard"
+    "notebook",  # 3  → "code editor"
+    "lake",  # 4  → "outdoor"
+    "dog",  # 5  → "indoor" (default)
 ]
 
 
@@ -60,16 +60,17 @@ def _run_classify(analyzer: SceneAnalyzer, top_index: int) -> str:
     mock_nn_f = MagicMock()
     mock_nn_f.softmax.return_value = MagicMock()
 
-    with patch("app.vision.scene_analyzer.Image") as mock_pil, \
-         patch("app.vision.scene_analyzer.F", mock_f), \
-         patch("app.vision.scene_analyzer.torch", mock_torch), \
-         patch("app.vision.scene_analyzer.nn_f", mock_nn_f):
+    with (
+        patch("app.vision.scene_analyzer.Image") as mock_pil,
+        patch("app.vision.scene_analyzer.F", mock_f),
+        patch("app.vision.scene_analyzer.torch", mock_torch),
+        patch("app.vision.scene_analyzer.nn_f", mock_nn_f),
+    ):
         mock_pil.fromarray.return_value = MagicMock()
         return analyzer.classify(dummy_image)
 
 
 class TestSceneAnalyzer(unittest.TestCase):
-
     def test_scene_analyzer_presentation_slide(self):
         """Category 'screen' maps to 'presentation slide'."""
         self.assertEqual(_run_classify(_make_analyzer(), 1), "presentation slide")

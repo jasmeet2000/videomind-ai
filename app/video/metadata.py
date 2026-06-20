@@ -39,17 +39,32 @@ def extract_metadata(file_path: str) -> dict:
 
     ffprobe = shutil.which("ffprobe")
     if ffprobe:
-        cmd = [ffprobe, "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", str(src)]
+        cmd = [
+            ffprobe,
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_format",
+            "-show_streams",
+            str(src),
+        ]
         proc = subprocess.run(cmd, capture_output=True, text=True)
         if proc.returncode != 0:
             stderr = (proc.stderr or "").strip()
-            raise VideoProcessingError("metadata_extraction", file_path, f"ffprobe failed: {stderr}")
+            raise VideoProcessingError(
+                "metadata_extraction", file_path, f"ffprobe failed: {stderr}"
+            )
         try:
             data = json.loads(proc.stdout)
         except Exception as e:
-            raise VideoProcessingError("metadata_extraction", file_path, f"ffprobe parse error: {e}")
+            raise VideoProcessingError(
+                "metadata_extraction", file_path, f"ffprobe parse error: {e}"
+            )
 
-        video_stream = next((s for s in data.get("streams", []) if s.get("codec_type") == "video"), None)
+        video_stream = next(
+            (s for s in data.get("streams", []) if s.get("codec_type") == "video"), None
+        )
         duration = float(data.get("format", {}).get("duration") or 0.0)
         fps = 0.0
         width = 0
@@ -79,7 +94,9 @@ def extract_metadata(file_path: str) -> dict:
     try:
         import cv2
     except Exception as e:
-        raise VideoProcessingError("metadata_extraction", file_path, f"ffprobe not available and OpenCV missing: {e}")
+        raise VideoProcessingError(
+            "metadata_extraction", file_path, f"ffprobe not available and OpenCV missing: {e}"
+        )
 
     cap = cv2.VideoCapture(str(src))
     if not cap.isOpened():

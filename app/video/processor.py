@@ -8,7 +8,7 @@ into a single, testable entrypoint for the ingestion pipeline.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from app.core.exceptions import VideoProcessingError
 from app.core.logging import get_logger
@@ -32,7 +32,7 @@ class VideoProcessor:
         self.frame_extractor = frame_extractor or FrameExtractor()
         self.output_dir = Path(output_dir)
 
-    def process(self, video_path: str, video_id: str) -> Dict[str, Any]:
+    def process(self, video_path: str, video_id: str) -> dict[str, Any]:
         """Run metadata extraction, audio extraction, and frame sampling.
 
         Returns a summary dict with keys: video_id, metadata, audio_path, frames

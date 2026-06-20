@@ -19,15 +19,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 import uuid
 
 # ---------------------------------------------------------------------------
 # Enumerations
 # ---------------------------------------------------------------------------
 
+
 class VideoStatus(str, Enum):
     """Lifecycle states of a video through the ingestion pipeline."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -36,15 +38,17 @@ class VideoStatus(str, Enum):
 
 class Modality(str, Enum):
     """Which pipeline produced a given chunk of content."""
-    AUDIO = "audio"       # Whisper transcript
-    VISUAL = "visual"     # OCR or vision model output
-    OBJECT = "object"     # Object detection labels
-    SCENE = "scene"       # Scene classification
+
+    AUDIO = "audio"  # Whisper transcript
+    VISUAL = "visual"  # OCR or vision model output
+    OBJECT = "object"  # Object detection labels
+    SCENE = "scene"  # Scene classification
 
 
 # ---------------------------------------------------------------------------
 # Core Entities
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class Video:
@@ -63,12 +67,13 @@ class Video:
         created_at: Timestamp of upload.
         updated_at: Timestamp of last status change.
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     filename: str = ""
     file_path: str = ""
     duration_seconds: float = 0.0
     fps: float = 0.0
-    resolution: Tuple[int, int] = (0, 0)
+    resolution: tuple[int, int] = (0, 0)
     codec: str = ""
     status: VideoStatus = VideoStatus.PENDING
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -89,6 +94,7 @@ class TranscriptChunk:
         confidence: Model confidence score [0.0, 1.0].
         language: Detected language code (e.g., "en").
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     video_id: str = ""
     text: str = ""
@@ -112,9 +118,10 @@ class TextBlock:
         confidence: OCR confidence score [0.0, 1.0].
         bounding_box: (x, y, width, height) pixel coordinates.
     """
+
     text: str = ""
     confidence: float = 0.0
-    bounding_box: Tuple[int, int, int, int] = (0, 0, 0, 0)
+    bounding_box: tuple[int, int, int, int] = (0, 0, 0, 0)
 
 
 @dataclass
@@ -132,12 +139,13 @@ class Frame:
         scene_label: High-level scene classification (e.g., "whiteboard").
         description: Vision model description of the frame content.
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     video_id: str = ""
     timestamp_seconds: float = 0.0
     file_path: str = ""
-    ocr_blocks: List[TextBlock] = field(default_factory=list)
-    objects_detected: List[str] = field(default_factory=list)
+    ocr_blocks: list[TextBlock] = field(default_factory=list)
+    objects_detected: list[str] = field(default_factory=list)
     scene_label: str = ""
     description: str = ""
 
@@ -157,14 +165,15 @@ class SearchResult:
         end_seconds: End timestamp (None for frame results).
         metadata: Arbitrary extra metadata dict.
     """
+
     chunk_id: str = ""
     video_id: str = ""
     modality: Modality = Modality.AUDIO
     text: str = ""
     score: float = 0.0
     start_seconds: float = 0.0
-    end_seconds: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    end_seconds: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -186,10 +195,11 @@ class PipelineEvent:
         error_message: Populated only when success=False.
         metadata: Additional key-value pairs for the event.
     """
+
     stage: str = ""
     video_id: str = ""
     duration_ms: float = 0.0
     success: bool = True
     error_message: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.utcnow)

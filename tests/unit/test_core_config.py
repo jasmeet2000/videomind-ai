@@ -12,5 +12,5 @@ class TestCoreConfig(unittest.TestCase):
         self.assertFalse(s1.debug)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

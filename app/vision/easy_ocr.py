@@ -43,6 +43,7 @@ class EasyOCRAdapter(IOCREngine):
         if self._reader is None:
             try:
                 import easyocr
+
                 self._reader = easyocr.Reader(self.langs, gpu=self.gpu)
             except Exception as exc:
                 logger.error("Failed to load EasyOCR", error=str(exc))
@@ -96,6 +97,7 @@ class EasyOCRAdapter(IOCREngine):
         """
         try:
             import easyocr  # noqa: F401
+
             return True
         except ImportError:
             return False

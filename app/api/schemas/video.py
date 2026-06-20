@@ -14,16 +14,19 @@ Production requirement:
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Tuple, Optional
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from app.domain.entities import VideoStatus
 
+if TYPE_CHECKING:
+    from datetime import datetime
+
 # ---------------------------------------------------------------------------
 # Request models
 # ---------------------------------------------------------------------------
+
 
 class UploadVideoRequest(BaseModel):
     """
@@ -32,12 +35,13 @@ class UploadVideoRequest(BaseModel):
     The actual file bytes come via FastAPI's UploadFile — this schema
     captures any additional metadata fields sent with the form.
     """
-    title: Optional[str] = Field(
+
+    title: str | None = Field(
         default=None,
         max_length=255,
         description="Optional human-readable title for the video.",
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         default=None,
         max_length=2000,
         description="Optional freeform description of the video content.",
@@ -48,16 +52,18 @@ class UploadVideoRequest(BaseModel):
 # Response models
 # ---------------------------------------------------------------------------
 
+
 class VideoMetadataResponse(BaseModel):
     """
     Technical and processing metadata returned after upload or status check.
     """
+
     id: str = Field(description="Unique video identifier (UUID4).")
     filename: str = Field(description="Original uploaded filename.")
     status: VideoStatus = Field(description="Current processing lifecycle status.")
     duration_seconds: float = Field(default=0.0, description="Video duration in seconds.")
     fps: float = Field(default=0.0, description="Frames per second of the source video.")
-    resolution: Tuple[int, int] = Field(
+    resolution: tuple[int, int] = Field(
         default=(0, 0),
         description="Video resolution as (width, height) in pixels.",
     )
@@ -70,6 +76,7 @@ class VideoMetadataResponse(BaseModel):
 
 class UploadVideoResponse(BaseModel):
     """Response returned immediately after a successful video upload."""
+
     video_id: str = Field(description="Unique ID assigned to the uploaded video.")
     status: VideoStatus = Field(description="Initial processing status (always PENDING).")
     message: str = Field(
@@ -80,6 +87,7 @@ class UploadVideoResponse(BaseModel):
 
 class VideoStatusResponse(BaseModel):
     """Response for polling the processing status of an uploaded video."""
+
     video_id: str
     status: VideoStatus
     progress_message: str = Field(
@@ -95,6 +103,7 @@ class ErrorResponse(BaseModel):
     Production requirement: clients always receive this shape on error —
     never a raw Python exception or stack trace.
     """
+
     error: str = Field(description="Exception class name (e.g., 'VideoNotFoundError').")
     message: str = Field(description="Human-readable error description.")
     request_id: str = Field(description="Unique request ID for log correlation.")

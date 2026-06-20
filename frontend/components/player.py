@@ -22,7 +22,7 @@ def get_video_player_html(video_path: str) -> str:
 
 def get_seek_script_html() -> str:
     """
-    Injects the JavaScript function into the parent window (main DOM) 
+    Injects the JavaScript function into the parent window (main DOM)
     so that onclick handlers inside st.markdown can call it.
     """
     return """

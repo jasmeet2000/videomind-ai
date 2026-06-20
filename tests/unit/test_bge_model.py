@@ -1,6 +1,7 @@
 """
 Unit test for BGEEmbeddingModel using a fake SentenceTransformer.
 """
+
 import unittest
 
 import numpy as np
@@ -20,7 +21,6 @@ class FakeST:
 
 
 class TestBGEModel(unittest.TestCase):
-
     def test_encode_with_fake_sentence_transformer(self):
         orig = getattr(bge_module, "SentenceTransformer", None)
         try:

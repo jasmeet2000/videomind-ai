@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List
+from typing import Any
 
 from app.domain.entities import SearchResult
 from app.domain.interfaces import IVectorRepository
@@ -12,7 +12,7 @@ class InMemoryVectorRepository(IVectorRepository):
 
     def __init__(self) -> None:
         # collection -> list of {'id': str, 'vector': list[float], 'payload': dict}
-        self.store: Dict[str, List[Dict[str, Any]]] = {}
+        self.store: dict[str, list[dict[str, Any]]] = {}
 
     async def upsert(self, chunks: list[dict[str, Any]], collection: str) -> None:
         bucket = self.store.setdefault(collection, [])
@@ -39,7 +39,7 @@ class InMemoryVectorRepository(IVectorRepository):
             candidates.append((score, item))
 
         candidates.sort(key=lambda t: t[0], reverse=True)
-        results: List[SearchResult] = []
+        results: list[SearchResult] = []
         for score, item in candidates[:top_k]:
             payload = item.get("payload", {})
             results.append(

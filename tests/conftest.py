@@ -12,6 +12,7 @@ import pytest
 # so that env-variable-patching tests don't leak state.
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(autouse=True)
 def clear_settings_cache():
     """
@@ -22,6 +23,7 @@ def clear_settings_cache():
     of env changes.
     """
     from app.core.config import get_settings
+
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

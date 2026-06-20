@@ -20,7 +20,6 @@ DESIGN PATTERN — Composition:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 from app.core.constants import DEFAULT_FRAME_SAMPLE_RATE_FPS, FRAME_IMAGE_FORMAT, FRAME_JPEG_QUALITY
 from app.core.exceptions import FrameExtractionError
@@ -44,7 +43,7 @@ class FrameExtractor:
         self.sample_rate_fps = sample_rate_fps
         self.output_dir = output_dir
 
-    def extract(self, video_path: str, video_id: str) -> List[Frame]:
+    def extract(self, video_path: str, video_id: str) -> list[Frame]:
         """
         Extract frames from a video and return Frame entities.
 
@@ -69,20 +68,19 @@ class FrameExtractor:
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
         duration = (frame_count / fps) if fps > 0 else 0.0
 
-        sample_rate = self.sample_rate_fps if self.sample_rate_fps > 0 else DEFAULT_FRAME_SAMPLE_RATE_FPS
+        sample_rate = (
+            self.sample_rate_fps if self.sample_rate_fps > 0 else DEFAULT_FRAME_SAMPLE_RATE_FPS
+        )
 
         out_dir = Path(self.output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        frames: List[Frame] = []
+        frames: list[Frame] = []
         t = 0.0
         max_iter = max(1, int(duration * sample_rate) + 5)
 
         for i in range(max_iter):
-            if fps > 0:
-                frame_no = int(round(t * fps))
-            else:
-                frame_no = i
+            frame_no = int(round(t * fps)) if fps > 0 else i
 
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
             ret, img = cap.read()
@@ -94,7 +92,9 @@ class FrameExtractor:
             file_path = out_dir / filename
 
             try:
-                cv2.imwrite(str(file_path), img, [int(cv2.IMWRITE_JPEG_QUALITY), FRAME_JPEG_QUALITY])
+                cv2.imwrite(
+                    str(file_path), img, [int(cv2.IMWRITE_JPEG_QUALITY), FRAME_JPEG_QUALITY]
+                )
             except Exception as write_exc:
                 logger.warning("Failed to write frame image", error=str(write_exc))
 

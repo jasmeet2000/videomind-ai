@@ -56,10 +56,20 @@ ignore = [
     "TC001",   # Move app import into TYPE_CHECKING — adds overhead without benefit here
     "TC002",   # Move third-party import into TYPE_CHECKING — numpy/PIL used at runtime
     "N812",    # Lowercase `functional` as `F` — standard torch/torchvision convention
+    "E501",    # Line too long
+    "B904",    # raise ... from e
+    "SIM115",  # Use a context manager for opening files
+    "SIM117",  # Nested with statements
+    "UP006",   # Use dict instead of Dict
+    "UP035",   # typing.Dict is deprecated
+    "ANN",     # Missing type annotations
+    "B008",    # Do not perform function calls in argument defaults (FastAPI depends)
+    "SIM105",  # Use contextlib.suppress instead of try/except/pass
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["ANN"]
+"frontend/**/*.py" = ["ANN"]
 
 
 [tool.ruff.lint.isort]

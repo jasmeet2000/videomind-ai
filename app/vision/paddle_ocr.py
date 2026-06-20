@@ -46,6 +46,7 @@ class PaddleOCRAdapter(IOCREngine):
         if self._ocr is None:
             try:
                 from paddleocr import PaddleOCR
+
                 # PaddleOCR generates verbose logs; show_log=False keeps it quiet
                 self._ocr = PaddleOCR(
                     use_angle_cls=True,
@@ -111,6 +112,7 @@ class PaddleOCRAdapter(IOCREngine):
         """
         try:
             import paddleocr  # noqa: F401
+
             return True
         except ImportError:
             return False

@@ -6,8 +6,6 @@ TranscriptChunk instances in an in-memory dictionary keyed by video_id.
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 from app.domain.entities import TranscriptChunk
 from app.domain.interfaces import ITranscriptRepository
 
@@ -16,7 +14,7 @@ class InMemoryTranscriptRepository(ITranscriptRepository):
     """Simple in-memory repository for TranscriptChunk objects."""
 
     def __init__(self) -> None:
-        self._store: Dict[str, List[TranscriptChunk]] = {}
+        self._store: dict[str, list[TranscriptChunk]] = {}
 
     async def save_batch(self, chunks: list[TranscriptChunk]) -> None:
         """Persist a batch of TranscriptChunk objects in memory.

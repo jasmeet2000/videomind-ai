@@ -1,6 +1,7 @@
 """
 Unit tests for repository adapters (VectorRepository delegation).
 """
+
 import asyncio
 import unittest
 
@@ -36,7 +37,6 @@ class FakeAdapter:
 
 
 class TestVectorRepository(unittest.TestCase):
-
     def test_upsert_delegates_and_converts(self):
         adapter = FakeAdapter()
         repo = VectorRepository(adapter)

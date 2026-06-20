@@ -48,16 +48,18 @@ async def chat_with_video(payload: ChatRequest, request: Request):
     sources = []
     for s in result.get("sources", []):
         start_m, start_s = divmod(int(s.get("start_seconds", 0)), 60)
-        sources.append(SearchResultItem(
-            chunk_id=s.get("chunk_id", ""),
-            video_id=payload.video_id,
-            modality=s.get("modality", "audio"),
-            text=s.get("text", ""),
-            score=s.get("score", 0.0),
-            start_seconds=s.get("start_seconds", 0.0),
-            end_seconds=s.get("end_seconds"),
-            timestamp_label=f"{start_m:02d}:{start_s:02d}",
-        ))
+        sources.append(
+            SearchResultItem(
+                chunk_id=s.get("chunk_id", ""),
+                video_id=payload.video_id,
+                modality=s.get("modality", "audio"),
+                text=s.get("text", ""),
+                score=s.get("score", 0.0),
+                start_seconds=s.get("start_seconds", 0.0),
+                end_seconds=s.get("end_seconds"),
+                timestamp_label=f"{start_m:02d}:{start_s:02d}",
+            )
+        )
 
     return ChatResponse(
         question=payload.question,

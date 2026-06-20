@@ -5,7 +5,7 @@ from app.core import constants
 
 class TestCoreConstants(unittest.TestCase):
     def test_supported_video_extensions(self):
-        self.assertIn('.mp4', constants.SUPPORTED_VIDEO_EXTENSIONS)
+        self.assertIn(".mp4", constants.SUPPORTED_VIDEO_EXTENSIONS)
 
     def test_embedding_dimensions_positive(self):
         self.assertGreater(constants.EMBEDDING_DIMENSION_BGE_SMALL, 0)
@@ -15,5 +15,5 @@ class TestCoreConstants(unittest.TestCase):
         self.assertLessEqual(constants.OCR_CONFIDENCE_THRESHOLD, 1.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

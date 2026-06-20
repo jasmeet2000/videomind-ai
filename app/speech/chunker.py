@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, List, Optional
+from typing import Callable
 
 from app.core.constants import TRANSCRIPT_CHUNK_MAX_TOKENS, TRANSCRIPT_OVERLAP_TOKENS
 from app.core.logging import get_logger
@@ -23,7 +23,11 @@ def _default_token_count(text: str) -> int:
         try:
             enc = _tiktoken.get_encoding("cl100k_base")
         except Exception:
-            enc = _tiktoken.encoding_for_model("gpt-4o-mini") if hasattr(_tiktoken, "encoding_for_model") else _tiktoken.get_encoding("cl100k_base")
+            enc = (
+                _tiktoken.encoding_for_model("gpt-4o-mini")
+                if hasattr(_tiktoken, "encoding_for_model")
+                else _tiktoken.get_encoding("cl100k_base")
+            )
         return len(enc.encode(text))
     except Exception:
         # Fallback heuristic
@@ -31,11 +35,11 @@ def _default_token_count(text: str) -> int:
 
 
 def chunk_transcript_chunks(
-    segments: List[TranscriptChunk],
+    segments: list[TranscriptChunk],
     max_tokens: int = TRANSCRIPT_CHUNK_MAX_TOKENS,
     overlap_tokens: int = TRANSCRIPT_OVERLAP_TOKENS,
-    token_counter: Optional[Callable[[str], int]] = None,
-) -> List[TranscriptChunk]:
+    token_counter: Callable[[str], int] | None = None,
+) -> list[TranscriptChunk]:
     """
     Merge Whisper segments (TranscriptChunk) into larger chunks bounded by
     an approximate token limit and optional overlap.
@@ -60,7 +64,7 @@ def chunk_transcript_chunks(
     segments_sorted = sorted(segments, key=lambda s: s.start_seconds)
     token_counts = [token_counter(s.text or "") for s in segments_sorted]
 
-    chunks: List[TranscriptChunk] = []
+    chunks: list[TranscriptChunk] = []
     n = len(segments_sorted)
     i = 0
 

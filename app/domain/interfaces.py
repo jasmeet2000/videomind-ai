@@ -39,6 +39,7 @@ from app.domain.entities import SearchResult, TextBlock, TranscriptChunk
 #   external libraries' incompatible APIs into this unified contract.
 # ---------------------------------------------------------------------------
 
+
 class IOCREngine(ABC):
     """Contract for all OCR engine implementations."""
 
@@ -67,6 +68,7 @@ class IOCREngine(ABC):
 #   (register in ModelRegistry) but closed to modification. New models
 #   implement IEmbeddingModel; no existing code changes.
 # ---------------------------------------------------------------------------
+
 
 class IEmbeddingModel(ABC):
     """Contract for all embedding model implementations."""
@@ -104,6 +106,7 @@ class IEmbeddingModel(ABC):
 #   on config. Qwen3, Llama 3.1, and Gemma 3 are interchangeable.
 # ---------------------------------------------------------------------------
 
+
 class ILLMBackend(ABC):
     """Contract for all LLM backend implementations."""
 
@@ -133,6 +136,7 @@ class ILLMBackend(ABC):
 #   Dense, sparse, and hybrid retrieval have separate interfaces.
 #   A dense-only implementation is not forced to implement sparse methods.
 # ---------------------------------------------------------------------------
+
 
 class IDenseRetriever(ABC):
     """Contract for dense (vector similarity) retrieval."""
@@ -214,6 +218,7 @@ class IHybridRetriever(ABC):
 # Reranker Interface
 # ---------------------------------------------------------------------------
 
+
 class IReranker(ABC):
     """Contract for cross-encoder reranking of retrieved results."""
 
@@ -239,25 +244,11 @@ class IReranker(ABC):
 
 
 # ---------------------------------------------------------------------------
-# LLM Generation Interface
-# ---------------------------------------------------------------------------
-
-class ILLMBackend(ABC):
-    """Contract for communicating with a Local LLM (e.g. Ollama)."""
-
-    @abstractmethod
-    async def generate(self, prompt: str, system_prompt: str = "") -> str:
-        """
-        Generate a text response given a prompt and optional system instruction.
-        """
-        ...
-
-
-# ---------------------------------------------------------------------------
 # Video Repository Interface
 # DESIGN PATTERN — Repository: Abstracts all persistence operations.
 #   Use cases call these methods; they never execute SQL directly.
 # ---------------------------------------------------------------------------
+
 
 class IVideoRepository(ABC):
     """Contract for video metadata persistence."""

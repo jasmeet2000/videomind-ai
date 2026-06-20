@@ -15,7 +15,6 @@ SOLID — Interface Segregation:
 from __future__ import annotations
 
 import asyncio
-from typing import Dict
 
 from app.domain.entities import SearchResult
 from app.domain.interfaces import IDenseRetriever, IHybridRetriever, ISparseRetriever
@@ -47,12 +46,14 @@ class HybridRetriever(IHybridRetriever):
         """
         # Execute dense and sparse retrieval concurrently
         dense_results, sparse_results = await asyncio.gather(
-            self.dense_retriever.search(query_vector=query_vector, video_id=video_id, top_k=top_k * 2),
+            self.dense_retriever.search(
+                query_vector=query_vector, video_id=video_id, top_k=top_k * 2
+            ),
             self.sparse_retriever.search(query=query, video_id=video_id, top_k=top_k * 2),
         )
 
-        fused_scores: Dict[str, float] = {}
-        chunks_map: Dict[str, SearchResult] = {}
+        fused_scores: dict[str, float] = {}
+        chunks_map: dict[str, SearchResult] = {}
 
         # Apply Reciprocal Rank Fusion (RRF)
         # RRF_score = sum( 1 / (k + rank) )

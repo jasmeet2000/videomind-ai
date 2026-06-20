@@ -52,10 +52,9 @@ class TestOCRService(unittest.TestCase):
     @patch("sys.modules", {"paddleocr": MagicMock()})
     def test_paddle_ocr_adapter_success(self):
         import paddleocr
+
         mock_instance = MagicMock()
-        mock_instance.ocr.return_value = [[
-            [ [[0, 0], [10, 0], [10, 10], [0, 10]], ("hello", 0.9) ]
-        ]]
+        mock_instance.ocr.return_value = [[[[[0, 0], [10, 0], [10, 10], [0, 10]], ("hello", 0.9)]]]
         paddleocr.PaddleOCR.return_value = mock_instance
 
         adapter = PaddleOCRAdapter()
@@ -69,6 +68,7 @@ class TestOCRService(unittest.TestCase):
     @patch("sys.modules", {"easyocr": MagicMock()})
     def test_easy_ocr_adapter_success(self):
         import easyocr
+
         mock_instance = MagicMock()
         mock_instance.readtext.return_value = [
             ([[0, 0], [10, 0], [10, 10], [0, 10]], "world", 0.85)
@@ -96,5 +96,5 @@ class TestOCRService(unittest.TestCase):
         self.assertEqual(svc.confidence_threshold, 0.75)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

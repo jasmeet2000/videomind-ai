@@ -15,7 +15,6 @@ from app.vision.object_detector import ObjectDetector
 
 
 class TestObjectDetector(unittest.TestCase):
-
     def _make_detector(self, categories=None, confidence_threshold=0.5) -> ObjectDetector:
         """Return a fully initialised ObjectDetector with injected mocks."""
         if categories is None:
@@ -52,9 +51,11 @@ class TestObjectDetector(unittest.TestCase):
         detector = self._make_detector(confidence_threshold=0.5)
         dummy_image = np.zeros((100, 100, 3), dtype=np.uint8)
 
-        with patch("app.vision.object_detector.Image"), \
-             patch("app.vision.object_detector.F", self._make_f_mock()), \
-             patch("app.vision.object_detector.torch", self._make_torch_ctx()):
+        with (
+            patch("app.vision.object_detector.Image"),
+            patch("app.vision.object_detector.F", self._make_f_mock()),
+            patch("app.vision.object_detector.torch", self._make_torch_ctx()),
+        ):
             res = detector.detect(dummy_image)
 
         # score 0.9 → person (idx 1), score 0.8 → laptop (idx 4); bicycle filtered
@@ -69,9 +70,11 @@ class TestObjectDetector(unittest.TestCase):
         detector._model = MagicMock(return_value=[])
         dummy_image = np.zeros((100, 100, 3), dtype=np.uint8)
 
-        with patch("app.vision.object_detector.Image"), \
-             patch("app.vision.object_detector.F", self._make_f_mock()), \
-             patch("app.vision.object_detector.torch", self._make_torch_ctx()):
+        with (
+            patch("app.vision.object_detector.Image"),
+            patch("app.vision.object_detector.F", self._make_f_mock()),
+            patch("app.vision.object_detector.torch", self._make_torch_ctx()),
+        ):
             res = detector.detect(dummy_image)
 
         self.assertEqual(res, [])
@@ -81,9 +84,11 @@ class TestObjectDetector(unittest.TestCase):
         detector = self._make_detector(confidence_threshold=0.99)
         dummy_image = np.zeros((100, 100, 3), dtype=np.uint8)
 
-        with patch("app.vision.object_detector.Image"), \
-             patch("app.vision.object_detector.F", self._make_f_mock()), \
-             patch("app.vision.object_detector.torch", self._make_torch_ctx()):
+        with (
+            patch("app.vision.object_detector.Image"),
+            patch("app.vision.object_detector.F", self._make_f_mock()),
+            patch("app.vision.object_detector.torch", self._make_torch_ctx()),
+        ):
             res = detector.detect(dummy_image)
 
         self.assertEqual(res, [])
@@ -105,9 +110,11 @@ class TestObjectDetector(unittest.TestCase):
         detector._model.return_value = [pred]
         dummy_image = np.zeros((100, 100, 3), dtype=np.uint8)
 
-        with patch("app.vision.object_detector.Image"), \
-             patch("app.vision.object_detector.F", self._make_f_mock()), \
-             patch("app.vision.object_detector.torch", self._make_torch_ctx()):
+        with (
+            patch("app.vision.object_detector.Image"),
+            patch("app.vision.object_detector.F", self._make_f_mock()),
+            patch("app.vision.object_detector.torch", self._make_torch_ctx()),
+        ):
             res = detector.detect(dummy_image)
 
         self.assertEqual(res.count("person"), 1)

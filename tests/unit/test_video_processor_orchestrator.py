@@ -15,13 +15,26 @@ class TestVideoProcessorOrchestrator(unittest.TestCase):
         fake_frame.file_path = "frame1.jpg"
         fake_frame.timestamp_seconds = 1.0
         frames = [fake_frame]
-        metadata = {"duration_seconds": 10.0, "fps": 30.0, "width": 640, "height": 480, "codec": "h264"}
+        metadata = {
+            "duration_seconds": 10.0,
+            "fps": 30.0,
+            "width": 640,
+            "height": 480,
+            "codec": "h264",
+        }
 
-        with patch("app.video.extractor.AudioExtractor.extract", return_value=audio_path) as mock_audio, \
-             patch("app.video.frames.FrameExtractor.extract", return_value=frames) as mock_frames, \
-             patch("app.video.processor.extract_metadata", return_value=metadata) as mock_meta:
-
-            proc = VideoProcessor(audio_extractor=AudioExtractor(), frame_extractor=FrameExtractor(), output_dir="./data/tmp")
+        with (
+            patch(
+                "app.video.extractor.AudioExtractor.extract", return_value=audio_path
+            ) as mock_audio,
+            patch("app.video.frames.FrameExtractor.extract", return_value=frames) as mock_frames,
+            patch("app.video.processor.extract_metadata", return_value=metadata) as mock_meta,
+        ):
+            proc = VideoProcessor(
+                audio_extractor=AudioExtractor(),
+                frame_extractor=FrameExtractor(),
+                output_dir="./data/tmp",
+            )
             summary = proc.process(video_path, video_id)
 
             mock_meta.assert_called_once_with(video_path)
@@ -33,5 +46,5 @@ class TestVideoProcessorOrchestrator(unittest.TestCase):
             self.assertEqual(summary["frames"], frames)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

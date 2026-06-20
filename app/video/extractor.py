@@ -66,19 +66,40 @@ class AudioExtractor:
         dst.parent.mkdir(parents=True, exist_ok=True)
 
         # Resolve ffmpeg binary
-        ffmpeg_bin = shutil.which(self.ffmpeg_path) or (self.ffmpeg_path if Path(self.ffmpeg_path).exists() else None)
+        ffmpeg_bin = shutil.which(self.ffmpeg_path) or (
+            self.ffmpeg_path if Path(self.ffmpeg_path).exists() else None
+        )
         if not ffmpeg_bin:
-            raise VideoProcessingError("audio_extraction", video_path, f"ffmpeg not found at '{self.ffmpeg_path}'")
+            raise VideoProcessingError(
+                "audio_extraction", video_path, f"ffmpeg not found at '{self.ffmpeg_path}'"
+            )
 
-        cmd = [ffmpeg_bin, "-y", "-i", str(src), "-ac", "1", "-ar", "16000", "-vn", "-f", "wav", str(dst)]
+        cmd = [
+            ffmpeg_bin,
+            "-y",
+            "-i",
+            str(src),
+            "-ac",
+            "1",
+            "-ar",
+            "16000",
+            "-vn",
+            "-f",
+            "wav",
+            str(dst),
+        ]
 
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True)
             if proc.returncode != 0:
                 stderr = (proc.stderr or "").strip()
                 logger.error("ffmpeg failed", stderr=stderr)
-                raise VideoProcessingError("audio_extraction", video_path, f"ffmpeg failed: {stderr}")
+                raise VideoProcessingError(
+                    "audio_extraction", video_path, f"ffmpeg failed: {stderr}"
+                )
         except Exception as exc:  # pragma: no cover - runtime/IO failures
-            raise VideoProcessingError("audio_extraction", video_path, f"ffmpeg execution error: {exc}")
+            raise VideoProcessingError(
+                "audio_extraction", video_path, f"ffmpeg execution error: {exc}"
+            )
 
         return str(dst.resolve())

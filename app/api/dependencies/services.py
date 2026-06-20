@@ -35,6 +35,7 @@ settings = get_settings()
 #     async with _db_pool.acquire() as conn:
 #         yield conn
 
+
 async def get_db():
     """
     Yield an asyncpg connection from a lazily-created pool.
@@ -83,6 +84,7 @@ async def get_db():
 
 _qdrant_client = None
 
+
 def get_qdrant_client():
     """
     Return a singleton Qdrant vector repository adapter.
@@ -98,13 +100,18 @@ def get_qdrant_client():
     # Lazy-import to avoid importing heavy optional deps at module import time
     from app.repositories.qdrant_vector_repository import QdrantVectorRepository
 
-    _qdrant_client = QdrantVectorRepository(host=settings.qdrant_host, port=settings.qdrant_port, collection=settings.qdrant_collection_name)
+    _qdrant_client = QdrantVectorRepository(
+        host=settings.qdrant_host,
+        port=settings.qdrant_port,
+        collection=settings.qdrant_collection_name,
+    )
     return _qdrant_client
 
 
 # ---------------------------------------------------------------------------
 # Phase 6+: Use case providers
 # ---------------------------------------------------------------------------
+
 
 def get_ingest_use_case():
     """
@@ -164,25 +171,30 @@ def get_search_use_case():
     """
     Provide a SearchVideoUseCase with retrieval pipeline wired in.
     """
-    from app.use_cases.search_video import SearchVideoUseCase
+    from app.embeddings.bge_model import BGEEmbeddingModel
     from app.embeddings.service import EmbeddingService
+    from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
+    from app.retrieval.dense import DenseRetriever
     from app.retrieval.hybrid import HybridRetriever
     from app.retrieval.reranker import CrossEncoderReranker
-    from app.retrieval.dense import DenseRetriever
     from app.retrieval.sparse import BM25SparseRetriever
-    from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
-    from app.repositories.in_memory_vector_repository import InMemoryVectorRepository
+    from app.use_cases.search_video import SearchVideoUseCase
 
     # For Phase 9 local testing without full docker DBs, we'll instantiate with in-memory fallbacks
     # if qdrant/db are not reachable, but ideally use the wired clients.
     qdrant = get_qdrant_client()
-    
+
     dense = DenseRetriever(vector_repo=qdrant, collection=settings.qdrant_collection_name)
-    sparse = BM25SparseRetriever(transcript_repo=InMemoryTranscriptRepository()) # Ideally inject real DB
-    
-    hybrid = HybridRetriever(dense=dense, sparse=sparse)
+    sparse = BM25SparseRetriever(
+        transcript_repo=InMemoryTranscriptRepository()
+    )  # Ideally inject real DB
+
+    hybrid = HybridRetriever(dense_retriever=dense, sparse_retriever=sparse)
     reranker = CrossEncoderReranker()
-    embedding = EmbeddingService()
+
+    # Instantiate the BGE embedding model and wrap it in the EmbeddingService
+    bge_model = BGEEmbeddingModel(model_name=settings.embedding_model)
+    embedding = EmbeddingService(model=bge_model)
 
     return SearchVideoUseCase(
         embedding_model=embedding,
@@ -195,28 +207,31 @@ def get_chat_use_case():
     """
     Provide a ChatWithVideoUseCase with full RAG pipeline wired in.
     """
-    from app.use_cases.chat_with_video import ChatWithVideoUseCase
-    from app.generation.context_builder import ContextBuilder
-    from app.generation.prompt_builder import PromptBuilder
-    from app.generation.llm_service import OllamaClient
+    from app.embeddings.bge_model import BGEEmbeddingModel
     from app.embeddings.service import EmbeddingService
+    from app.generation.context_builder import ContextBuilder
+    from app.generation.llm_service import OllamaClient
+    from app.generation.prompt_builder import PromptBuilder
+    from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
+    from app.retrieval.dense import DenseRetriever
     from app.retrieval.hybrid import HybridRetriever
     from app.retrieval.reranker import CrossEncoderReranker
-    from app.retrieval.dense import DenseRetriever
     from app.retrieval.sparse import BM25SparseRetriever
-    from app.repositories.in_memory_transcript_repository import InMemoryTranscriptRepository
+    from app.use_cases.chat_with_video import ChatWithVideoUseCase
 
     qdrant = get_qdrant_client()
-    
+
     dense = DenseRetriever(vector_repo=qdrant, collection=settings.qdrant_collection_name)
-    sparse = BM25SparseRetriever(transcript_repo=InMemoryTranscriptRepository()) 
-    
-    hybrid = HybridRetriever(dense=dense, sparse=sparse)
+    sparse = BM25SparseRetriever(transcript_repo=InMemoryTranscriptRepository())
+
+    hybrid = HybridRetriever(dense_retriever=dense, sparse_retriever=sparse)
     reranker = CrossEncoderReranker()
-    embedding = EmbeddingService()
-    
+
+    bge_model = BGEEmbeddingModel(model_name=settings.embedding_model)
+    embedding = EmbeddingService(model=bge_model)
+
     llm = OllamaClient(host=settings.ollama_host, model=settings.ollama_model)
-    
+
     return ChatWithVideoUseCase(
         embedding_model=embedding,
         retriever=hybrid,

@@ -4,11 +4,12 @@ Postgres video repository (async).
 Optional dependency: asyncpg. Imports are lazy so unit tests and local runs
 work without installing asyncpg. Use `connect()` before calling save/get.
 """
+
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
-import uuid
 import datetime
+from typing import Any
+import uuid
 
 from app.domain.entities import Video, VideoStatus
 from app.domain.interfaces import IVideoRepository
@@ -27,7 +28,9 @@ class PostgresVideoRepository(IVideoRepository):
         try:
             import asyncpg  # type: ignore
         except Exception as exc:  # pragma: no cover - optional dependency
-            raise RuntimeError("asyncpg required for PostgresVideoRepository. Install with 'pip install asyncpg'") from exc
+            raise RuntimeError(
+                "asyncpg required for PostgresVideoRepository. Install with 'pip install asyncpg'"
+            ) from exc
 
         self._pool = await asyncpg.create_pool(dsn=self.dsn, min_size=1, max_size=5)
 
@@ -44,7 +47,11 @@ class PostgresVideoRepository(IVideoRepository):
         filename = video.filename if hasattr(video, "filename") else ""
         file_path = video.file_path if hasattr(video, "file_path") else ""
         duration = video.duration_seconds if hasattr(video, "duration_seconds") else 0.0
-        status = video.status.value if hasattr(video, "status") and hasattr(video.status, "value") else str(getattr(video, "status", "pending"))
+        status = (
+            video.status.value
+            if hasattr(video, "status") and hasattr(video.status, "value")
+            else str(getattr(video, "status", "pending"))
+        )
 
         async with self._pool.acquire() as conn:
             # We assume a videos table with matching columns
@@ -75,7 +82,7 @@ class PostgresVideoRepository(IVideoRepository):
             )
             if not r:
                 return None
-            
+
             # Map status string to Enum if possible
             try:
                 status_enum = VideoStatus(r["status"])
@@ -86,7 +93,9 @@ class PostgresVideoRepository(IVideoRepository):
                 id=str(r["id"]),
                 filename=r["filename"] if r["filename"] else "",
                 file_path=r["file_path"] if r["file_path"] else "",
-                duration_seconds=float(r["duration_seconds"]) if r["duration_seconds"] is not None else 0.0,
+                duration_seconds=float(r["duration_seconds"])
+                if r["duration_seconds"] is not None
+                else 0.0,
                 status=status_enum,
                 created_at=r["created_at"] if "created_at" in r else datetime.datetime.utcnow(),
                 updated_at=r["updated_at"] if "updated_at" in r else datetime.datetime.utcnow(),
@@ -95,4 +104,6 @@ class PostgresVideoRepository(IVideoRepository):
     async def update_status(self, video_id: str, status: str) -> None:
         await self.connect()
         async with self._pool.acquire() as conn:
-            await conn.execute("UPDATE videos SET status=$1, updated_at=NOW() WHERE id=$2", status, video_id)
+            await conn.execute(
+                "UPDATE videos SET status=$1, updated_at=NOW() WHERE id=$2", status, video_id
+            )

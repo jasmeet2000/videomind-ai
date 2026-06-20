@@ -90,7 +90,6 @@ class ModelRegistry:
         self._loaded_models[model_name] = model
         return model
 
-
     @classmethod
     def register(cls, name: str, model_class: type) -> None:
         """

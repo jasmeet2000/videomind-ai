@@ -56,4 +56,6 @@ class VectorRepository(IVectorRepository):
         top_k: int,
     ) -> list[SearchResult]:
         """Delegate search to the underlying Qdrant adapter, supplying video_id for filtering."""
-        return await self._adapter.search(query_vector, collection=collection, video_id=video_id, top_k=top_k)
+        return await self._adapter.search(
+            query_vector, collection=collection, video_id=video_id, top_k=top_k
+        )

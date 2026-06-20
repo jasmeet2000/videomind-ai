@@ -68,9 +68,7 @@ async def upload_video(
     }
 
     # Dispatch background processing
-    background_tasks.add_task(
-        _run_ingestion, request.app, video_id, file_path
-    )
+    background_tasks.add_task(_run_ingestion, request.app, video_id, file_path)
 
     return UploadVideoResponse(
         video_id=video_id,

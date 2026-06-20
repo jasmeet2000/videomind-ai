@@ -4,9 +4,8 @@ BGE Embedding Model adapter for VideoMind AI
 Implements IEmbeddingModel using the sentence-transformers wrapper for
 BAAI/bge-small-en-v1.5. Loads lazily and runs on CPU by default.
 """
-from __future__ import annotations
 
-from typing import List
+from __future__ import annotations
 
 import numpy as np
 
@@ -27,7 +26,7 @@ class BGEEmbeddingModel(IEmbeddingModel):
 
     DEFAULT_MODEL = "BAAI/bge-small-en-v1.5"
 
-    def __init__(self, model_name: str | None = None):
+    def __init__(self, model_name: str | None = None) -> None:
         self._model_name = model_name or self.DEFAULT_MODEL
         self._model: SentenceTransformer | None = None
 
@@ -39,7 +38,7 @@ class BGEEmbeddingModel(IEmbeddingModel):
         # Force CPU-only inference
         self._model = SentenceTransformer(self._model_name, device="cpu")
 
-    def encode(self, texts: List[str], batch_size: int = 32) -> List[List[float]]:
+    def encode(self, texts: list[str], batch_size: int = 32) -> list[list[float]]:
         """Encode texts into dense vectors (lists of floats).
 
         Args:
@@ -53,7 +52,9 @@ class BGEEmbeddingModel(IEmbeddingModel):
             return []
         self._ensure_model()
         # sentence-transformers can return numpy arrays when convert_to_numpy=True
-        embeddings = self._model.encode(texts, batch_size=batch_size, convert_to_numpy=True, show_progress_bar=False)
+        embeddings = self._model.encode(
+            texts, batch_size=batch_size, convert_to_numpy=True, show_progress_bar=False
+        )
         # Ensure a 2D numpy array
         if isinstance(embeddings, np.ndarray):
             return [row.tolist() for row in embeddings]

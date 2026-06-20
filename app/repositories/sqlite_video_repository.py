@@ -3,13 +3,14 @@ SQLite-backed video metadata repository implementing IVideoRepository.
 
 Uses sqlite3 via asyncio.to_thread for compatibility with the async app.
 """
+
 from __future__ import annotations
 
 import asyncio
+import datetime
 import os
 import sqlite3
-import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 import uuid
 
 from app.domain.entities import Video, VideoStatus
@@ -21,7 +22,7 @@ class SQLiteVideoRepository(IVideoRepository):
 
     def __init__(self, db_path: str = "data\videomind.db") -> None:
         self.db_path = db_path
-        self._conn: Optional[sqlite3.Connection] = None
+        self._conn: sqlite3.Connection | None = None
 
     async def connect(self) -> None:
         if self._conn is not None:
@@ -72,7 +73,11 @@ class SQLiteVideoRepository(IVideoRepository):
             filename = video.filename if hasattr(video, "filename") else ""
             file_path = video.file_path if hasattr(video, "file_path") else ""
             duration = video.duration_seconds if hasattr(video, "duration_seconds") else 0.0
-            status = video.status.value if hasattr(video, "status") and hasattr(video.status, "value") else str(getattr(video, "status", "pending"))
+            status = (
+                video.status.value
+                if hasattr(video, "status") and hasattr(video.status, "value")
+                else str(getattr(video, "status", "pending"))
+            )
 
             # Insert or replace; preserve existing status if present
             cur.execute(
@@ -98,14 +103,18 @@ class SQLiteVideoRepository(IVideoRepository):
             r = cur.fetchone()
             if not r:
                 return None
-            
+
             try:
                 status_enum = VideoStatus(r[4])
             except ValueError:
                 status_enum = VideoStatus.PENDING
 
-            created_at = datetime.datetime.fromisoformat(r[5]) if r[5] else datetime.datetime.utcnow()
-            updated_at = datetime.datetime.fromisoformat(r[6]) if r[6] else datetime.datetime.utcnow()
+            created_at = (
+                datetime.datetime.fromisoformat(r[5]) if r[5] else datetime.datetime.utcnow()
+            )
+            updated_at = (
+                datetime.datetime.fromisoformat(r[6]) if r[6] else datetime.datetime.utcnow()
+            )
 
             return Video(
                 id=r[0],
@@ -124,7 +133,10 @@ class SQLiteVideoRepository(IVideoRepository):
 
         def _update() -> None:
             cur = self._conn.cursor()
-            cur.execute("UPDATE videos SET status=?, updated_at=datetime('now') WHERE id=?", (status, video_id))
+            cur.execute(
+                "UPDATE videos SET status=?, updated_at=datetime('now') WHERE id=?",
+                (status, video_id),
+            )
             self._conn.commit()
 
         await asyncio.to_thread(_update)

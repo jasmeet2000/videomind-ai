@@ -72,6 +72,7 @@ class TestVideoProcessing(unittest.TestCase):
     @patch("sys.modules", {"cv2": MagicMock()})
     def test_metadata_opencv_fallback(self, mock_which):
         import cv2
+
         mock_cap = MagicMock()
         mock_cap.isOpened.return_value = True
         mock_cap.get.side_effect = lambda prop: {
@@ -104,8 +105,10 @@ class TestVideoProcessing(unittest.TestCase):
     def test_audio_extractor_success(self, mock_run, mock_which):
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         ae = AudioExtractor(ffmpeg_path="ffmpeg")
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_in, \
-             tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_out:
+        with (
+            tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_in,
+            tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_out,
+        ):
             tmp_in_name = tmp_in.name
             tmp_out_name = tmp_out.name
         try:
@@ -123,6 +126,7 @@ class TestVideoProcessing(unittest.TestCase):
     @patch("sys.modules", {"cv2": MagicMock()})
     def test_frame_extractor_success(self):
         import cv2
+
         mock_cap = MagicMock()
         mock_cap.isOpened.return_value = True
         mock_cap.get.side_effect = lambda prop: {
@@ -145,5 +149,5 @@ class TestVideoProcessing(unittest.TestCase):
             os.unlink(tmp_name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

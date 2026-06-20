@@ -47,8 +47,10 @@ class TestLanguageDetection(unittest.TestCase):
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             tmp_name = tmp.name
         try:
-            with patch.dict("sys.modules", {"whisper": mock_whisper}), \
-                 patch("app.speech.language_detection._model_cache", {}):
+            with (
+                patch.dict("sys.modules", {"whisper": mock_whisper}),
+                patch("app.speech.language_detection._model_cache", {}),
+            ):
                 lang, conf = detect_language(tmp_name)
                 self.assertEqual(lang, "en")
                 self.assertAlmostEqual(conf, 0.95)
@@ -56,5 +58,5 @@ class TestLanguageDetection(unittest.TestCase):
             os.unlink(tmp_name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

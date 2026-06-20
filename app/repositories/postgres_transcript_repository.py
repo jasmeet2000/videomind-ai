@@ -4,8 +4,10 @@ Postgres transcript repository (async).
 Optional dependency: asyncpg. Imports are lazy so unit tests and local runs
 work without installing asyncpg. Use `connect()` before calling save/get.
 """
+
 from __future__ import annotations
 
+import contextlib
 import json
 
 from app.domain.entities import TranscriptChunk
@@ -28,7 +30,9 @@ class PostgresTranscriptRepository(ITranscriptRepository):
         try:
             import asyncpg  # type: ignore
         except Exception as exc:  # pragma: no cover - optional dependency
-            raise RuntimeError("asyncpg required for PostgresTranscriptRepository. Install with 'pip install asyncpg'") from exc
+            raise RuntimeError(
+                "asyncpg required for PostgresTranscriptRepository. Install with 'pip install asyncpg'"
+            ) from exc
 
         self._pool = await asyncpg.create_pool(dsn=self.dsn, min_size=1, max_size=5)
 
@@ -47,13 +51,15 @@ class PostgresTranscriptRepository(ITranscriptRepository):
 
         rows = []
         for c in chunks:
-            rows.append((
-                str(c.video_id),
-                c.text,
-                float(c.start_seconds),
-                float(c.end_seconds) if c.end_seconds is not None else 0.0,
-                json.dumps(c.embedding) if getattr(c, "embedding", None) is not None else None,
-            ))
+            rows.append(
+                (
+                    str(c.video_id),
+                    c.text,
+                    float(c.start_seconds),
+                    float(c.end_seconds) if c.end_seconds is not None else 0.0,
+                    json.dumps(c.embedding) if getattr(c, "embedding", None) is not None else None,
+                )
+            )
 
         async with self._pool.acquire() as conn:
             async with conn.transaction():
@@ -73,11 +79,9 @@ class PostgresTranscriptRepository(ITranscriptRepository):
             for r in records:
                 embedding = r["embedding"]
                 if embedding is not None and isinstance(embedding, (str, bytes)):
-                    try:
+                    with contextlib.suppress(Exception):
                         embedding = json.loads(embedding)
-                    except Exception:
-                        pass
-                
+
                 tc = TranscriptChunk(
                     id=str(r["id"]),
                     video_id=str(r["video_id"]),
@@ -86,6 +90,6 @@ class PostgresTranscriptRepository(ITranscriptRepository):
                     end_seconds=float(r["end_seconds"]),
                 )
                 if embedding is not None:
-                    setattr(tc, "embedding", embedding)
+                    tc.embedding = embedding
                 result.append(tc)
             return result

@@ -5,9 +5,9 @@ Orchestrates Retrieval-Augmented Generation (RAG) by combining
 the Retrieval layer and the LLM Generation layer.
 """
 
-from typing import Dict, Any
+from typing import Any
 
-from app.domain.interfaces import IEmbeddingModel, IHybridRetriever, IReranker, ILLMBackend
+from app.domain.interfaces import IEmbeddingModel, IHybridRetriever, ILLMBackend, IReranker
 from app.generation.context_builder import ContextBuilder
 from app.generation.prompt_builder import PromptBuilder
 
@@ -31,7 +31,7 @@ class ChatWithVideoUseCase:
         self.context_builder = context_builder
         self.prompt_builder = prompt_builder
 
-    async def execute(self, video_id: str, query: str, top_k: int = 10) -> Dict[str, Any]:
+    async def execute(self, video_id: str, query: str, top_k: int = 10) -> dict[str, Any]:
         """
         Execute the RAG pipeline.
 

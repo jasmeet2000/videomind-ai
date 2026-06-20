@@ -1,10 +1,8 @@
 import pytest
-import sqlite3
-import os
 
-from app.domain.entities import Video, TranscriptChunk, Modality, VideoStatus
-from app.repositories.sqlite_video_repository import SQLiteVideoRepository
+from app.domain.entities import TranscriptChunk, Video, VideoStatus
 from app.repositories.sqlite_transcript_repository import SQLiteTranscriptRepository
+from app.repositories.sqlite_video_repository import SQLiteVideoRepository
 
 
 @pytest.fixture
@@ -16,31 +14,27 @@ def test_db_path(tmp_path):
 @pytest.mark.asyncio
 async def test_sqlite_video_repository(test_db_path):
     repo = SQLiteVideoRepository(db_path=test_db_path)
-    
+
     # 1. Create a video
-    video = Video(
-        id="vid123",
-        filename="test.mp4",
-        status=VideoStatus.PROCESSING
-    )
+    video = Video(id="vid123", filename="test.mp4", status=VideoStatus.PROCESSING)
     await repo.save(video)
-    
+
     # 2. Get the video
     fetched = await repo.get_by_id("vid123")
     assert fetched is not None
     assert fetched.filename == "test.mp4"
     assert fetched.status == VideoStatus.PROCESSING
-    
+
     # 3. Update the video
     fetched.status = VideoStatus.COMPLETED
     fetched.duration_seconds = 120.5
     await repo.save(fetched)
-    
+
     # 4. Fetch again and verify updates
     updated = await repo.get_by_id("vid123")
     assert updated.status == VideoStatus.COMPLETED
     assert updated.duration_seconds == 120.5
-    
+
     # 5. Get missing video
     missing = await repo.get_by_id("vid999")
     assert missing is None
@@ -50,34 +44,25 @@ async def test_sqlite_video_repository(test_db_path):
 async def test_sqlite_transcript_repository(test_db_path):
     # Need to initialize video repo first so the videos table exists (foreign key)
     vid_repo = SQLiteVideoRepository(db_path=test_db_path)
-    
+
     vid = Video(id="vid1", filename="test.mp4")
     await vid_repo.save(vid)
 
     repo = SQLiteTranscriptRepository(db_path=test_db_path)
-    
+
     # 1. Create chunks
     chunks = [
         TranscriptChunk(
-            id="c1",
-            video_id="vid1",
-            text="Hello world",
-            start_seconds=0.0,
-            end_seconds=2.5
+            id="c1", video_id="vid1", text="Hello world", start_seconds=0.0, end_seconds=2.5
         ),
         TranscriptChunk(
-            id="c2",
-            video_id="vid1",
-            text="Visual text",
-            start_seconds=2.5,
-            end_seconds=None
-        )
+            id="c2", video_id="vid1", text="Visual text", start_seconds=2.5, end_seconds=None
+        ),
     ]
-    
+
     await repo.save_batch(chunks)
-    
+
     # 2. Retrieve chunks
     fetched_chunks = await repo.get_by_video_id("vid1")
     assert len(fetched_chunks) == 2
     assert fetched_chunks[0].text == "Hello world"
-

@@ -24,8 +24,8 @@ Clean Architecture — Dependency Rule:
 
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 import uuid
 
 from fastapi import FastAPI, Request
@@ -37,6 +37,9 @@ from app.core.config import get_settings
 from app.core.exceptions import VideoMindError
 from app.core.logging import configure_logging, get_logger
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
 logger = get_logger(__name__)
 settings = get_settings()
 
@@ -44,6 +47,7 @@ settings = get_settings()
 # ---------------------------------------------------------------------------
 # Lifespan — startup and shutdown hooks
 # ---------------------------------------------------------------------------
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -76,6 +80,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if settings.check_readiness:
         try:
             from urllib.parse import urlparse
+
             parsed_db = urlparse(settings.database_url)
             db_scheme = (parsed_db.scheme or "").lower()
 
@@ -127,7 +132,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             app.state.qdrant_repo = qdrant_repo
             app.state.video_repo = video_repo
 
-            logger.info("External clients initialized", db=("sqlite" if db_scheme.startswith("sqlite") else "postgres"), qdrant=settings.qdrant_host)
+            logger.info(
+                "External clients initialized",
+                db=("sqlite" if db_scheme.startswith("sqlite") else "postgres"),
+                qdrant=settings.qdrant_host,
+            )
         except Exception as exc:
             logger.warning("Failed to initialize optional external clients", error=str(exc))
 
@@ -159,6 +168,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 # ---------------------------------------------------------------------------
 # Application factory
 # ---------------------------------------------------------------------------
+
 
 def create_app() -> FastAPI:
     """
@@ -251,9 +261,7 @@ def _register_exception_handlers(app: FastAPI) -> None:
     """
 
     @app.exception_handler(VideoMindError)
-    async def videomind_error_handler(
-        request: Request, exc: VideoMindError
-    ) -> JSONResponse:
+    async def videomind_error_handler(request: Request, exc: VideoMindError) -> JSONResponse:
         """Catch all domain exceptions and return a structured error response."""
         request_id = getattr(request.state, "request_id", "unknown")
         logger.warning(
@@ -273,9 +281,7 @@ def _register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_error_handler(
-        request: Request, exc: Exception
-    ) -> JSONResponse:
+    async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
         """Catch-all for unexpected exceptions — never expose the traceback."""
         request_id = getattr(request.state, "request_id", "unknown")
         logger.exception(

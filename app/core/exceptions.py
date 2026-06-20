@@ -22,6 +22,7 @@ from __future__ import annotations
 # Base exception
 # ---------------------------------------------------------------------------
 
+
 class VideoMindError(Exception):
     """
     Root exception for all VideoMind AI errors.
@@ -37,6 +38,7 @@ class VideoMindError(Exception):
 # ---------------------------------------------------------------------------
 # Video processing exceptions
 # ---------------------------------------------------------------------------
+
 
 class VideoNotFoundError(VideoMindError):
     """Raised when a requested video ID does not exist in the database."""
@@ -75,6 +77,7 @@ class VideoProcessingError(VideoMindError):
 # Speech pipeline exceptions
 # ---------------------------------------------------------------------------
 
+
 class TranscriptionError(VideoMindError):
     """Raised when Whisper fails to transcribe audio."""
 
@@ -88,6 +91,7 @@ class TranscriptionError(VideoMindError):
 # ---------------------------------------------------------------------------
 # OCR / Vision exceptions
 # ---------------------------------------------------------------------------
+
 
 class OCREngineUnavailableError(VideoMindError):
     """Raised when neither PaddleOCR nor EasyOCR is available."""
@@ -110,6 +114,7 @@ class FrameExtractionError(VideoMindError):
 # Embedding exceptions
 # ---------------------------------------------------------------------------
 
+
 class EmbeddingModelNotFoundError(VideoMindError):
     """Raised when a requested embedding model is not registered."""
 
@@ -124,6 +129,7 @@ class EmbeddingModelNotFoundError(VideoMindError):
 # Retrieval exceptions
 # ---------------------------------------------------------------------------
 
+
 class VectorSearchError(VideoMindError):
     """Raised when the Qdrant search operation fails."""
 
@@ -134,6 +140,7 @@ class VectorSearchError(VideoMindError):
 # ---------------------------------------------------------------------------
 # LLM / Generation exceptions
 # ---------------------------------------------------------------------------
+
 
 class LLMUnavailableError(VideoMindError):
     """Raised when Ollama is unreachable or returns an error."""
@@ -152,6 +159,7 @@ class PromptBuildError(VideoMindError):
 # ---------------------------------------------------------------------------
 # Configuration exceptions
 # ---------------------------------------------------------------------------
+
 
 class ConfigurationError(VideoMindError):
     """Raised when a required environment variable is missing or invalid."""

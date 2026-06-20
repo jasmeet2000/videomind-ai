@@ -47,5 +47,5 @@ class TestWhisperService(unittest.TestCase):
             os.unlink(tmp.name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

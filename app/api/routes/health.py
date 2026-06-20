@@ -39,8 +39,10 @@ settings = get_settings()
 # Response schemas (inline — small enough to not warrant a separate file)
 # ---------------------------------------------------------------------------
 
+
 class HealthResponse(BaseModel):
     """Liveness probe response."""
+
     status: str
     version: str
     app_name: str
@@ -48,6 +50,7 @@ class HealthResponse(BaseModel):
 
 class ReadinessResponse(BaseModel):
     """Readiness probe response with per-dependency status."""
+
     status: str
     version: str
     dependencies: dict[str, str]
@@ -56,6 +59,7 @@ class ReadinessResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
 
 @router.get(
     "/health",
@@ -115,9 +119,9 @@ async def readiness() -> ReadinessResponse:
         # Keep Phase 2 behavior during development / CI unless readiness
         # checks are explicitly enabled via settings.check_readiness.
         dependencies: dict[str, str] = {
-            "postgresql": "not_configured",   # Phase 6
-            "qdrant": "not_configured",       # Phase 6
-            "ollama": "not_configured",       # Phase 8
+            "postgresql": "not_configured",  # Phase 6
+            "qdrant": "not_configured",  # Phase 6
+            "ollama": "not_configured",  # Phase 8
         }
         overall_status = "ok"
     else:

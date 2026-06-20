@@ -5,10 +5,12 @@ Supports qdrant-client Python library if installed, otherwise falls
 back to the HTTP API via requests. Blocking calls are executed in a
 thread to avoid blocking the event loop.
 """
+
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Dict, List
+import contextlib
+from typing import Any
 
 from app.domain.entities import SearchResult
 
@@ -21,7 +23,9 @@ class QdrantVectorRepository:
     via requests. All network/blocking calls run in a thread.
     """
 
-    def __init__(self, host: str = "localhost", port: int = 6333, collection: str = "videomind") -> None:
+    def __init__(
+        self, host: str = "localhost", port: int = 6333, collection: str = "videomind"
+    ) -> None:
         self.host = host
         self.port = int(port)
         self.collection = collection
@@ -50,14 +54,12 @@ class QdrantVectorRepository:
         if self._client is None:
             return
         if self._use_http:
-            try:
+            with contextlib.suppress(Exception):
                 self._client.close()
-            except Exception:
-                pass
         # qdrant-client has no explicit close API
         self._client = None
 
-    async def upsert(self, points: List[Dict[str, Any]], collection: str | None = None) -> None:
+    async def upsert(self, points: list[dict[str, Any]], collection: str | None = None) -> None:
         collection = collection or self.collection
         await self.connect()
         if not self._use_http:
@@ -74,24 +76,39 @@ class QdrantVectorRepository:
                     pid = p.get("id")
                     vec = p.get("vector")
                     payload = p.get("payload", {}) or {}
-                    qdrant_points.append(qdrant_models.PointStruct(id=pid, vector=vec, payload=payload))
+                    qdrant_points.append(
+                        qdrant_models.PointStruct(id=pid, vector=vec, payload=payload)
+                    )
             except Exception:
                 # If constructing PointStructs fails, fall back to raw dicts
                 qdrant_points = points
 
             # Blocking call — run in a thread
-            await asyncio.to_thread(self._client.upsert, collection_name=collection, points=qdrant_points)
+            await asyncio.to_thread(
+                self._client.upsert, collection_name=collection, points=qdrant_points
+            )
         else:
             url = f"{self._base_url}/collections/{collection}/points?wait=true"
             await asyncio.to_thread(self._client.put, url, json={"points": points}, timeout=15)
 
-    async def search(self, vector: List[float], collection: str | None = None, video_id: str | None = None, top_k: int = 10) -> List[SearchResult]:
+    async def search(
+        self,
+        vector: list[float],
+        collection: str | None = None,
+        video_id: str | None = None,
+        top_k: int = 10,
+    ) -> list[SearchResult]:
         collection = collection or self.collection
         await self.connect()
-        results: List[SearchResult] = []
+        results: list[SearchResult] = []
         if not self._use_http:
             # Build search kwargs and optionally attach a Filter when video_id is provided
-            kwargs: dict = {"collection_name": collection, "query_vector": vector, "limit": top_k, "with_payload": True}
+            kwargs: dict = {
+                "collection_name": collection,
+                "query": vector,
+                "limit": top_k,
+                "with_payload": True,
+            }
             if video_id is not None:
                 filter_obj = None
                 try:
@@ -113,10 +130,17 @@ class QdrantVectorRepository:
                     filter_obj = None
 
                 if filter_obj is not None:
-                    kwargs["filter"] = filter_obj
+                    kwargs["query_filter"] = filter_obj
 
-            resp = await asyncio.to_thread(self._client.search, **kwargs)
-            for hit in resp:
+            try:
+                resp = await asyncio.to_thread(self._client.query_points, **kwargs)
+            except Exception as e:
+                # Catch qdrant_client.http.exceptions.UnexpectedResponse for "doesn't exist"
+                if "doesn't exist" in str(e) or "Not found" in str(e):
+                    return []
+                raise
+
+            for hit in resp.points:
                 payload = getattr(hit, "payload", {}) or {}
                 results.append(
                     SearchResult(

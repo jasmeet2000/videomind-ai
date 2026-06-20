@@ -7,21 +7,22 @@ Main application entry point.
 import os
 import time
 
+from components.cards import render_chat_assistant, render_chat_user, render_search_result
+from components.player import get_seek_script_html
+from components.skeleton import (
+    skeleton_chat_response,
+    skeleton_results,
+    skeleton_status,
+    skeleton_video,
+)
+from components.status import render_pipeline_stepper
 import requests
 import streamlit as st
-
 from theme import get_google_fonts_html, get_theme_css
-from components.skeleton import skeleton_results, skeleton_chat_response, skeleton_status, skeleton_video
-from components.cards import render_search_result, render_chat_user, render_chat_assistant
-from components.player import get_video_player_html, get_seek_script_html
-from components.status import render_pipeline_stepper
 
 # Configure page
 st.set_page_config(
-    page_title="VideoMind AI",
-    page_icon="🎬",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="VideoMind AI", page_icon="🎬", layout="wide", initial_sidebar_state="expanded"
 )
 
 # Set API Base URL from environment or default to local dev
@@ -49,10 +50,10 @@ with st.sidebar:
     col1, col2, col3, col4 = st.columns([4, 1, 1, 1])
     with col1:
         st.markdown("### 🎬 VideoMind AI")
-        
-    def set_theme(t):
+
+    def set_theme(t) -> None:
         st.session_state["theme"] = t
-        
+
     with col2:
         if st.button("🌙", key="btn_dark", help="Dark Mode", use_container_width=True):
             set_theme("dark")
@@ -65,20 +66,22 @@ with st.sidebar:
         if st.button("🪟", key="btn_glass", help="Glass Mode", use_container_width=True):
             set_theme("glass")
             st.rerun()
-            
+
     st.markdown("---")
-    
+
     # Upload Widget
     st.markdown("#### 📁 Upload Video")
-    uploaded_file = st.file_uploader("Drag & drop your video here", type=["mp4", "mov", "avi"], label_visibility="collapsed")
-    
+    uploaded_file = st.file_uploader(
+        "Drag & drop your video here", type=["mp4", "mov", "avi"], label_visibility="collapsed"
+    )
+
     if uploaded_file and st.button("Upload & Process", use_container_width=True):
         st.toast("⚙️ Processing started...", icon="⚙️")
         try:
             files = {"file": (uploaded_file.name, uploaded_file, "video/mp4")}
             res = requests.post(f"{API_BASE_URL}/videos/upload", files=files, timeout=TIMEOUT)
             res.raise_for_status()
-            
+
             data = res.json()
             st.session_state["video_id"] = data["video_id"]
             # Save a local temp copy for the UI to play, since API serves from backend DATA_DIR
@@ -87,28 +90,33 @@ with st.sidebar:
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getvalue())
             st.session_state["video_path"] = temp_path
-            
+
             st.toast("✅ Video uploaded successfully", icon="✅")
-            st.session_state["chat_history"] = [] # Reset chat
+            st.session_state["chat_history"] = []  # Reset chat
             st.rerun()
-        except Exception as e:
+        except Exception:
             st.toast("❌ Upload failed \u2014 check file format or server connection", icon="❌")
             st.error("Failed to upload video to the backend.")
 
     st.markdown("---")
-    
+
     # Processing Status Tracker
     if st.session_state["video_id"]:
         st.markdown("#### ⚙️ Processing Status")
         status_placeholder = st.empty()
-        
+
         while True:
             try:
-                res = requests.get(f"{API_BASE_URL}/videos/{st.session_state['video_id']}/status", timeout=TIMEOUT)
+                res = requests.get(
+                    f"{API_BASE_URL}/videos/{st.session_state['video_id']}/status", timeout=TIMEOUT
+                )
                 if res.status_code == 200:
                     status_data = res.json()
-                    status_placeholder.markdown(render_pipeline_stepper(status_data.get("progress_message", "")), unsafe_allow_html=True)
-                    
+                    status_placeholder.markdown(
+                        render_pipeline_stepper(status_data.get("progress_message", "")),
+                        unsafe_allow_html=True,
+                    )
+
                     if status_data.get("status") in ("completed", "failed"):
                         break
                 else:
@@ -116,13 +124,16 @@ with st.sidebar:
             except Exception:
                 status_placeholder.markdown(skeleton_status(), unsafe_allow_html=True)
                 break
-                
+
             time.sleep(3)
 
 
 # --- Main Area ---
 if not st.session_state["video_id"]:
-    st.markdown("<div class='vm-empty-state'><div class='icon'>🎬</div><p>Upload a video to start chatting</p></div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div class='vm-empty-state'><div class='icon'>🎬</div><p>Upload a video to start chatting</p></div>",
+        unsafe_allow_html=True,
+    )
 else:
     # Video Player
     if st.session_state["video_path"] and os.path.exists(st.session_state["video_path"]):
@@ -136,83 +147,113 @@ else:
         st.markdown(skeleton_video(), unsafe_allow_html=True)
 
     st.markdown("---")
-    
+
     # Tabs
     tab_chat, tab_search, tab_summary = st.tabs(["💬 Chat", "🔍 Search", "📋 Summary"])
-    
+
     with tab_chat:
         st.markdown("<div class='vm-chat-container'>", unsafe_allow_html=True)
-        
+
         if not st.session_state["chat_history"]:
-            st.markdown("<div class='vm-empty-state'><div class='icon'>💬</div><p>Ask anything about your video</p></div>", unsafe_allow_html=True)
-            
+            st.markdown(
+                "<div class='vm-empty-state'><div class='icon'>💬</div><p>Ask anything about your video</p></div>",
+                unsafe_allow_html=True,
+            )
+
         for msg in st.session_state["chat_history"]:
             if msg["role"] == "user":
                 st.markdown(render_chat_user(msg["content"]), unsafe_allow_html=True)
             else:
-                st.markdown(render_chat_assistant(msg["content"], msg.get("sources")), unsafe_allow_html=True)
-                
+                st.markdown(
+                    render_chat_assistant(msg["content"], msg.get("sources")),
+                    unsafe_allow_html=True,
+                )
+
         st.markdown("</div>", unsafe_allow_html=True)
-        
+
         # Chat input at bottom
         user_query = st.chat_input("Ask a question about the video...")
         if user_query:
             # Add user message
             st.session_state["chat_history"].append({"role": "user", "content": user_query})
             st.rerun()
-            
+
     # If the last message is from the user, fetch assistant response
-    if tab_chat and st.session_state["chat_history"] and st.session_state["chat_history"][-1]["role"] == "user":
+    if (
+        tab_chat
+        and st.session_state["chat_history"]
+        and st.session_state["chat_history"][-1]["role"] == "user"
+    ):
         with tab_chat:
             loading_placeholder = st.empty()
             loading_placeholder.markdown(skeleton_chat_response(), unsafe_allow_html=True)
-            
+
             try:
-                payload = {"question": st.session_state["chat_history"][-1]["content"], "video_id": st.session_state["video_id"]}
+                payload = {
+                    "question": st.session_state["chat_history"][-1]["content"],
+                    "video_id": st.session_state["video_id"],
+                }
                 res = requests.post(f"{API_BASE_URL}/chat", json=payload, timeout=TIMEOUT)
                 res.raise_for_status()
                 data = res.json()
-                
+
                 loading_placeholder.empty()
-                st.session_state["chat_history"].append({
-                    "role": "assistant", 
-                    "content": data["answer"],
-                    "sources": data.get("sources", [])
-                })
+                st.session_state["chat_history"].append(
+                    {
+                        "role": "assistant",
+                        "content": data["answer"],
+                        "sources": data.get("sources", []),
+                    }
+                )
                 st.rerun()
             except requests.exceptions.Timeout:
                 loading_placeholder.empty()
                 st.error("The model took too long to respond. Please try again.")
-                st.session_state["chat_history"].pop() # Remove pending user message
-            except Exception as e:
+                st.session_state["chat_history"].pop()  # Remove pending user message
+            except Exception:
                 loading_placeholder.empty()
-                st.error("Failed to generate response. Please ensure Ollama and backend are running.")
+                st.error(
+                    "Failed to generate response. Please ensure Ollama and backend are running."
+                )
                 st.session_state["chat_history"].pop()
-                
+
     with tab_search:
-        search_query = st.text_input("🔍 Search within video (e.g., 'Docker setup', 'Show me the whiteboard')", key="search_input")
+        search_query = st.text_input(
+            "🔍 Search within video (e.g., 'Docker setup', 'Show me the whiteboard')",
+            key="search_input",
+        )
         if search_query:
             search_placeholder = st.empty()
             search_placeholder.markdown(skeleton_results(), unsafe_allow_html=True)
-            
+
             try:
-                payload = {"query": search_query, "video_id": st.session_state["video_id"], "top_k": 5}
+                payload = {
+                    "query": search_query,
+                    "video_id": st.session_state["video_id"],
+                    "top_k": 5,
+                }
                 res = requests.post(f"{API_BASE_URL}/search", json=payload, timeout=TIMEOUT)
                 res.raise_for_status()
                 data = res.json()
-                
+
                 search_placeholder.empty()
                 results = data.get("results", [])
-                
+
                 if not results:
-                    st.markdown("<div class='vm-empty-state'><div class='icon'>🤷</div><p>No results found \u2014 try different keywords</p></div>", unsafe_allow_html=True)
+                    st.markdown(
+                        "<div class='vm-empty-state'><div class='icon'>🤷</div><p>No results found \u2014 try different keywords</p></div>",
+                        unsafe_allow_html=True,
+                    )
                 else:
                     for r in results:
                         st.markdown(render_search_result(r), unsafe_allow_html=True)
-                        
-            except Exception as e:
+
+            except Exception:
                 search_placeholder.empty()
                 st.error("Failed to fetch search results. Please ensure the backend is running.")
 
     with tab_summary:
-        st.markdown("<div class='vm-empty-state'><div class='icon'>📋</div><p>Video summarization coming soon</p></div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div class='vm-empty-state'><div class='icon'>📋</div><p>Video summarization coming soon</p></div>",
+            unsafe_allow_html=True,
+        )
