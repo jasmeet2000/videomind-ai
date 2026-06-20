@@ -8,9 +8,11 @@ from __future__ import annotations
 import asyncio
 import os
 import sqlite3
+import datetime
 from typing import Any, Dict, Optional
 import uuid
 
+from app.domain.entities import Video, VideoStatus
 from app.domain.interfaces import IVideoRepository
 
 
@@ -43,10 +45,12 @@ class SQLiteVideoRepository(IVideoRepository):
             """
             CREATE TABLE IF NOT EXISTS videos (
                 id TEXT PRIMARY KEY,
-                source_uri TEXT NOT NULL,
+                filename TEXT NOT NULL,
+                file_path TEXT NOT NULL,
                 duration_seconds REAL,
                 status TEXT DEFAULT 'uploaded',
-                created_at TEXT DEFAULT (datetime('now'))
+                created_at TEXT DEFAULT (datetime('now')),
+                updated_at TEXT DEFAULT (datetime('now'))
             );
             """
         )
@@ -59,46 +63,59 @@ class SQLiteVideoRepository(IVideoRepository):
         await asyncio.to_thread(self._conn.close)
         self._conn = None
 
-    async def save(self, video: Dict[str, Any]) -> None:
+    async def save(self, video: Any) -> None:
         await self.connect()
 
         def _save() -> None:
             cur = self._conn.cursor()
-            vid = video.get("id") or str(uuid.uuid4())
-            source_uri = video.get("source_uri")
-            duration = video.get("duration_seconds")
+            vid = video.id if hasattr(video, "id") else getattr(video, "id", str(uuid.uuid4()))
+            filename = video.filename if hasattr(video, "filename") else ""
+            file_path = video.file_path if hasattr(video, "file_path") else ""
+            duration = video.duration_seconds if hasattr(video, "duration_seconds") else 0.0
+            status = video.status.value if hasattr(video, "status") and hasattr(video.status, "value") else str(getattr(video, "status", "pending"))
 
             # Insert or replace; preserve existing status if present
             cur.execute(
                 """
-                INSERT OR REPLACE INTO videos (id, source_uri, duration_seconds, status)
-                VALUES (?, ?, ?, COALESCE((SELECT status FROM videos WHERE id = ?), 'uploaded'))
+                INSERT OR REPLACE INTO videos (id, filename, file_path, duration_seconds, status, updated_at)
+                VALUES (?, ?, ?, ?, ?, datetime('now'))
                 """,
-                (vid, source_uri, duration, vid),
+                (vid, filename, file_path, duration, status),
             )
             self._conn.commit()
 
         await asyncio.to_thread(_save)
 
-    async def get_by_id(self, video_id: str) -> Optional[Dict[str, Any]]:
+    async def get_by_id(self, video_id: str) -> Any | None:
         await self.connect()
 
-        def _get() -> Optional[Dict[str, Any]]:
+        def _get() -> Any | None:
             cur = self._conn.cursor()
             cur.execute(
-                "SELECT id, source_uri, duration_seconds, status, created_at FROM videos WHERE id = ?",
+                "SELECT id, filename, file_path, duration_seconds, status, created_at, updated_at FROM videos WHERE id = ?",
                 (video_id,),
             )
             r = cur.fetchone()
             if not r:
                 return None
-            return {
-                "id": r[0],
-                "source_uri": r[1],
-                "duration_seconds": float(r[2]) if r[2] is not None else None,
-                "status": r[3],
-                "created_at": r[4],
-            }
+            
+            try:
+                status_enum = VideoStatus(r[4])
+            except ValueError:
+                status_enum = VideoStatus.PENDING
+
+            created_at = datetime.datetime.fromisoformat(r[5]) if r[5] else datetime.datetime.utcnow()
+            updated_at = datetime.datetime.fromisoformat(r[6]) if r[6] else datetime.datetime.utcnow()
+
+            return Video(
+                id=r[0],
+                filename=r[1] if r[1] else "",
+                file_path=r[2] if r[2] else "",
+                duration_seconds=float(r[3]) if r[3] is not None else 0.0,
+                status=status_enum,
+                created_at=created_at,
+                updated_at=updated_at,
+            )
 
         return await asyncio.to_thread(_get)
 
@@ -107,7 +124,7 @@ class SQLiteVideoRepository(IVideoRepository):
 
         def _update() -> None:
             cur = self._conn.cursor()
-            cur.execute("UPDATE videos SET status=? WHERE id=?", (status, video_id))
+            cur.execute("UPDATE videos SET status=?, updated_at=datetime('now') WHERE id=?", (status, video_id))
             self._conn.commit()
 
         await asyncio.to_thread(_update)

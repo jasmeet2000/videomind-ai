@@ -24,8 +24,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# API Configuration
-API_BASE_URL = "http://localhost:8000/api/v1"
+# Set API Base URL from environment or default to local dev
+API_BASE_URL = os.environ.get("API_URL", "http://localhost:8000/api/v1")
 TIMEOUT = 30.0
 
 # Initialize Session State

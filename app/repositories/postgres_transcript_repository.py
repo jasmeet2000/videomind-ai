@@ -49,7 +49,7 @@ class PostgresTranscriptRepository(ITranscriptRepository):
         for c in chunks:
             rows.append((
                 str(c.video_id),
-                c.content,
+                c.text,
                 float(c.start_seconds),
                 float(c.end_seconds) if c.end_seconds is not None else 0.0,
                 json.dumps(c.embedding) if getattr(c, "embedding", None) is not None else None,
@@ -58,7 +58,7 @@ class PostgresTranscriptRepository(ITranscriptRepository):
         async with self._pool.acquire() as conn:
             async with conn.transaction():
                 await conn.executemany(
-                    "INSERT INTO transcript_chunks (video_id, content, start_time, end_time, embedding) VALUES ($1,$2,$3,$4,$5)",
+                    "INSERT INTO transcript_chunks (video_id, text, start_seconds, end_seconds, embedding) VALUES ($1,$2,$3,$4,$5)",
                     rows,
                 )
 
@@ -66,7 +66,7 @@ class PostgresTranscriptRepository(ITranscriptRepository):
         await self.connect()
         async with self._pool.acquire() as conn:
             records = await conn.fetch(
-                "SELECT id, video_id, content, start_time, end_time, embedding FROM transcript_chunks WHERE video_id=$1 ORDER BY start_time",
+                "SELECT id, video_id, text, start_seconds, end_seconds, embedding FROM transcript_chunks WHERE video_id=$1 ORDER BY start_seconds",
                 video_id,
             )
             result: list[TranscriptChunk] = []
@@ -77,14 +77,15 @@ class PostgresTranscriptRepository(ITranscriptRepository):
                         embedding = json.loads(embedding)
                     except Exception:
                         pass
-                # Construct a TranscriptChunk instance. The domain entity may accept these fields.
+                
                 tc = TranscriptChunk(
                     id=str(r["id"]),
                     video_id=str(r["video_id"]),
-                    content=r["content"],
-                    start_seconds=float(r["start_time"]),
-                    end_seconds=float(r["end_time"]),
-                    embedding=embedding,
+                    text=r["text"],
+                    start_seconds=float(r["start_seconds"]),
+                    end_seconds=float(r["end_seconds"]),
                 )
+                if embedding is not None:
+                    setattr(tc, "embedding", embedding)
                 result.append(tc)
             return result

@@ -4,6 +4,22 @@ VideoMind AI — Video Player Component
 Renders the video player and injects JavaScript for seeking.
 """
 
+
+def get_video_player_html(video_path: str) -> str:
+    """
+    Returns an HTML5 video player for the given local video path.
+    This is used when we want a custom-styled player rather than st.video().
+    """
+    return f"""
+    <div class="vm-video-container">
+        <video id="vm-player" controls style="width:100%; border-radius:12px;">
+            <source src="{video_path}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    """
+
+
 def get_seek_script_html() -> str:
     """
     Injects the JavaScript function into the parent window (main DOM) 

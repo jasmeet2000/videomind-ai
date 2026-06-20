@@ -125,3 +125,33 @@ def test_cross_encoder_reranker():
     assert len(reranked) == 2
     assert reranked[0].chunk_id == "c2"  # highest score 0.9
     assert reranked[1].chunk_id == "c3"  # score 0.5
+
+def test_cross_encoder_reranker_empty_results():
+    try:
+        from app.retrieval.reranker import CrossEncoderReranker
+    except ImportError:
+        pytest.skip("sentence-transformers not installed")
+    
+    reranker = CrossEncoderReranker()
+    assert reranker.rerank("query", []) == []
+
+def test_cross_encoder_reranker_import_error():
+    from app.retrieval.reranker import CrossEncoderReranker
+    from unittest.mock import patch
+    
+    reranker = CrossEncoderReranker()
+    
+    with patch("builtins.__import__", side_effect=ImportError("No module named 'sentence_transformers'")):
+        with pytest.raises(RuntimeError, match="sentence-transformers not installed"):
+            reranker._ensure_model()
+
+def test_cross_encoder_reranker_general_error():
+    from app.retrieval.reranker import CrossEncoderReranker
+    from unittest.mock import patch
+    
+    reranker = CrossEncoderReranker()
+    
+    with patch("builtins.__import__", side_effect=Exception("Unexpected error")):
+        with pytest.raises(Exception, match="Unexpected error"):
+            reranker._ensure_model()
+

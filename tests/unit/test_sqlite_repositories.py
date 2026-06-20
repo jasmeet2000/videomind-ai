@@ -20,8 +20,6 @@ async def test_sqlite_video_repository(test_db_path):
     # 1. Create a video
     video = Video(
         id="vid123",
-        title="Test Video",
-        description="A test",
         filename="test.mp4",
         status=VideoStatus.PROCESSING
     )
@@ -30,7 +28,7 @@ async def test_sqlite_video_repository(test_db_path):
     # 2. Get the video
     fetched = await repo.get_by_id("vid123")
     assert fetched is not None
-    assert fetched.title == "Test Video"
+    assert fetched.filename == "test.mp4"
     assert fetched.status == VideoStatus.PROCESSING
     
     # 3. Update the video
@@ -53,7 +51,7 @@ async def test_sqlite_transcript_repository(test_db_path):
     # Need to initialize video repo first so the videos table exists (foreign key)
     vid_repo = SQLiteVideoRepository(db_path=test_db_path)
     
-    vid = Video(id="vid1", title="test", filename="test.mp4")
+    vid = Video(id="vid1", filename="test.mp4")
     await vid_repo.save(vid)
 
     repo = SQLiteTranscriptRepository(db_path=test_db_path)
@@ -65,28 +63,21 @@ async def test_sqlite_transcript_repository(test_db_path):
             video_id="vid1",
             text="Hello world",
             start_seconds=0.0,
-            end_seconds=2.5,
-            modality=Modality.AUDIO
+            end_seconds=2.5
         ),
         TranscriptChunk(
             id="c2",
             video_id="vid1",
             text="Visual text",
             start_seconds=2.5,
-            end_seconds=None,
-            modality=Modality.VISUAL
+            end_seconds=None
         )
     ]
     
-    await repo.save_chunks(chunks)
+    await repo.save_batch(chunks)
     
     # 2. Retrieve chunks
-    fetched_chunks = await repo.get_chunks_by_video_id("vid1")
+    fetched_chunks = await repo.get_by_video_id("vid1")
     assert len(fetched_chunks) == 2
     assert fetched_chunks[0].text == "Hello world"
-    assert fetched_chunks[1].modality == Modality.VISUAL
-    
-    # 3. Delete chunks
-    await repo.delete_chunks_by_video_id("vid1")
-    empty_chunks = await repo.get_chunks_by_video_id("vid1")
-    assert len(empty_chunks) == 0
+

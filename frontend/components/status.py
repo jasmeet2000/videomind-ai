@@ -50,7 +50,8 @@ def render_pipeline_stepper(status_text: str) -> str:
             state_class = ""
             
         # Add spinning animation inline if active
-        icon_html = f'<div class="vm-step-icon" {"style=\'animation: spin 2s linear infinite;\'" if is_active else ""}>{icon}</div>'
+        spin_style = "style='animation: spin 2s linear infinite;'" if is_active else ""
+        icon_html = f'<div class="vm-step-icon" {spin_style}>{icon}</div>'
         
         html += f"""
         <div class="vm-step {state_class}">
