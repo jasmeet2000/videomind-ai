@@ -50,8 +50,6 @@ select = [
     "ANN",  # flake8-annotations (type hints enforcement)
 ]
 ignore = [
-    "ANN101",  # Missing type annotation for `self`
-    "ANN102",  # Missing type annotation for `cls`
     "ANN401",  # Dynamically typed expressions (Any) are disallowed
     "TC001",   # Move app import into TYPE_CHECKING — adds overhead without benefit here
     "TC002",   # Move third-party import into TYPE_CHECKING — numpy/PIL used at runtime

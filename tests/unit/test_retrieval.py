@@ -212,9 +212,13 @@ def test_cross_encoder_reranker_import_error():
 
     reranker = CrossEncoderReranker()
 
-    with patch(
-        "builtins.__import__", side_effect=ImportError("No module named 'sentence_transformers'")
-    ), pytest.raises(RuntimeError, match="sentence-transformers not installed"):
+    with (
+        patch(
+            "builtins.__import__",
+            side_effect=ImportError("No module named 'sentence_transformers'"),
+        ),
+        pytest.raises(RuntimeError, match="sentence-transformers not installed"),
+    ):
         reranker._ensure_model()
 
 
