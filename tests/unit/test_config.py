@@ -24,6 +24,7 @@ from app.core.config import Settings, get_settings
 class TestSettings:
     """Tests for the Settings Pydantic BaseSettings model."""
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_settings_loads_with_defaults(self) -> None:
         """Settings should instantiate successfully using default values."""
         settings = Settings(_env_file=None)
@@ -32,24 +33,28 @@ class TestSettings:
         assert settings.debug is False
         assert settings.log_level == "INFO"
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_database_url_has_default(self) -> None:
         """A sensible default DATABASE_URL should be set for local dev."""
         settings = Settings(_env_file=None)
         assert "postgresql://" in settings.database_url
         assert "videomind" in settings.database_url
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_qdrant_defaults(self) -> None:
         """Qdrant should default to localhost:6333."""
         settings = Settings(_env_file=None)
         assert settings.qdrant_host == "localhost"
         assert settings.qdrant_port == 6333
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_ollama_defaults(self) -> None:
         """Ollama should default to localhost:11434."""
         settings = Settings(_env_file=None)
         assert "localhost" in settings.ollama_host
         assert settings.ollama_model == "qwen3"
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_embedding_defaults(self) -> None:
         """Embedding model defaults should match the chosen open-source model."""
         settings = Settings(_env_file=None)
@@ -57,12 +62,14 @@ class TestSettings:
         assert settings.embedding_device == "cpu"
         assert settings.embedding_batch_size == 32
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_whisper_defaults(self) -> None:
         """Whisper should default to base model on CPU."""
         settings = Settings(_env_file=None)
         assert settings.whisper_model == "base"
         assert settings.whisper_device == "cpu"
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_retrieval_defaults(self) -> None:
         """Retrieval hyperparameters should have sensible defaults."""
         settings = Settings(_env_file=None)
@@ -72,19 +79,21 @@ class TestSettings:
 
     def test_settings_override_via_env(self) -> None:
         """Environment variables should override defaults (12-Factor)."""
-        with patch.dict(os.environ, {"DEBUG": "true", "LOG_LEVEL": "DEBUG"}):
-            settings = Settings()
+        with patch.dict(os.environ, {"DEBUG": "true", "LOG_LEVEL": "DEBUG"}, clear=True):
+            settings = Settings(_env_file=None)
             assert settings.debug is True
             assert settings.log_level == "DEBUG"
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_max_video_size_is_positive(self) -> None:
         """Max video size must be a positive integer."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert settings.max_video_size_mb > 0
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_ocr_confidence_threshold_range(self) -> None:
         """OCR confidence threshold must be between 0 and 1."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert 0.0 <= settings.ocr_confidence_threshold <= 1.0
 
 
