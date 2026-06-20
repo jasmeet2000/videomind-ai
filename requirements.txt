@@ -11,6 +11,7 @@ python-multipart>=0.0.9        # File upload support for FastAPI
 # --- Data validation ---
 pydantic>=2.7.0
 pydantic-settings>=2.3.0       # BaseSettings from env vars (12-Factor)
+eval_type_backport>=0.2.0      # Support for | Union syntax in Python 3.9
 
 # --- Logging ---
 loguru>=0.7.2

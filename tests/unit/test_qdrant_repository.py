@@ -36,13 +36,15 @@ async def test_qdrant_search(mock_qdrant_client):
     mock_hit.id = "c1"
     mock_hit.score = 0.85
     mock_hit.payload = {"video_id": "vid1", "text": "hello"}
-    mock_qdrant_client.search.return_value = [mock_hit]
+    mock_resp = MagicMock()
+    mock_resp.points = [mock_hit]
+    mock_qdrant_client.query_points.return_value = mock_resp
 
     repo = QdrantVectorRepository(host="localhost", port=6333, collection="test_col")
 
     results = await repo.search(vector=[0.1, 0.2], video_id="vid1", top_k=5)
 
-    mock_qdrant_client.search.assert_called_once()
+    mock_qdrant_client.query_points.assert_called_once()
     assert len(results) == 1
     assert results[0].chunk_id == "c1"
     assert results[0].score == 0.85

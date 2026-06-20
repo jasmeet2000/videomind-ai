@@ -70,7 +70,8 @@ async def test_ollama_client_success():
     mock_response.json.return_value = {"response": "This is the generated text"}
     mock_response.raise_for_status = MagicMock()
 
-    mock_post = AsyncMock(return_value=mock_response)
+    mock_post = AsyncMock()
+    mock_post.return_value = mock_response
 
     with patch("httpx.AsyncClient.post", mock_post):
         response = await client.generate("Hello", "System prompt")
@@ -86,7 +87,8 @@ async def test_ollama_client_success():
 async def test_ollama_client_failure():
     client = OllamaClient()
 
-    mock_post = AsyncMock(side_effect=httpx.RequestError("Network error"))
+    mock_post = AsyncMock()
+    mock_post.side_effect = httpx.RequestError("Network error")
 
     with patch("httpx.AsyncClient.post", mock_post):
         with pytest.raises(RuntimeError, match="network error"):

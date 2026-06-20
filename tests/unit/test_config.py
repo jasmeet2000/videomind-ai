@@ -26,7 +26,7 @@ class TestSettings:
 
     def test_settings_loads_with_defaults(self) -> None:
         """Settings should instantiate successfully using default values."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert settings.app_name == "VideoMind AI"
         assert settings.app_version == "0.1.0"
         assert settings.debug is False
@@ -34,38 +34,38 @@ class TestSettings:
 
     def test_database_url_has_default(self) -> None:
         """A sensible default DATABASE_URL should be set for local dev."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert "postgresql://" in settings.database_url
         assert "videomind" in settings.database_url
 
     def test_qdrant_defaults(self) -> None:
         """Qdrant should default to localhost:6333."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert settings.qdrant_host == "localhost"
         assert settings.qdrant_port == 6333
 
     def test_ollama_defaults(self) -> None:
         """Ollama should default to localhost:11434."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert "localhost" in settings.ollama_host
         assert settings.ollama_model == "qwen3"
 
     def test_embedding_defaults(self) -> None:
         """Embedding model defaults should match the chosen open-source model."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert settings.embedding_model == "BAAI/bge-small-en-v1.5"
         assert settings.embedding_device == "cpu"
         assert settings.embedding_batch_size == 32
 
     def test_whisper_defaults(self) -> None:
         """Whisper should default to base model on CPU."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert settings.whisper_model == "base"
         assert settings.whisper_device == "cpu"
 
     def test_retrieval_defaults(self) -> None:
         """Retrieval hyperparameters should have sensible defaults."""
-        settings = Settings()
+        settings = Settings(_env_file=None)
         assert settings.dense_retrieval_top_k == 10
         assert settings.rerank_top_k == 5
         assert 0.0 < settings.hybrid_alpha < 1.0

@@ -111,22 +111,18 @@ class ILLMBackend(ABC):
     """Contract for all LLM backend implementations."""
 
     @abstractmethod
-    def generate(self, prompt: str, **kwargs: Any) -> str:
+    async def generate(self, prompt: str, system_prompt: str = "", **kwargs: Any) -> str:
         """
         Generate a text response for a given prompt.
 
         Args:
             prompt: The fully assembled prompt string.
-            **kwargs: Backend-specific options (temperature, max_tokens, etc.).
+            system_prompt: Optional system instruction.
+            **kwargs: Backend-specific options.
 
         Returns:
             The generated text response as a string.
         """
-        ...
-
-    @abstractmethod
-    def is_available(self) -> bool:
-        """Return True if the LLM backend is reachable."""
         ...
 
 

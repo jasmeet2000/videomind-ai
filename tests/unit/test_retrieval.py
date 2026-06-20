@@ -44,7 +44,7 @@ async def test_dense_retriever_delegates(mock_vector_repo):
     assert len(results) == 1
     assert results[0].chunk_id == "1"
     mock_vector_repo.search.assert_called_once_with(
-        query_vector=[0.1, 0.2], collection="test_col", video_id="v1", top_k=5
+        vector=[0.1, 0.2], collection="test_col", video_id="v1", top_k=5
     )
 
 
@@ -145,8 +145,8 @@ def test_cross_encoder_reranker():
         import sentence_transformers  # noqa
 
         from app.retrieval.reranker import CrossEncoderReranker
-    except ImportError:
-        pytest.skip("sentence-transformers not installed")
+    except (ImportError, ValueError) as e:
+        pytest.skip(f"sentence-transformers not installed or compatible: {e}")
 
     reranker = CrossEncoderReranker(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
 

@@ -69,7 +69,7 @@ class TestVideoProcessing(unittest.TestCase):
             os.unlink(tmp_name)
 
     @patch("shutil.which", return_value=None)
-    @patch("sys.modules", {"cv2": MagicMock()})
+    @patch.dict("sys.modules", {"cv2": MagicMock()})
     def test_metadata_opencv_fallback(self, mock_which):
         import cv2
 
@@ -123,7 +123,7 @@ class TestVideoProcessing(unittest.TestCase):
         with self.assertRaises(FrameExtractionError):
             fe.extract("nonexistent_file_12345.mp4", "vid123")
 
-    @patch("sys.modules", {"cv2": MagicMock()})
+    @patch.dict("sys.modules", {"cv2": MagicMock()})
     def test_frame_extractor_success(self):
         import cv2
 
