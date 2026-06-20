@@ -32,7 +32,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import health
+from app.api.routes import chat, health, search, video
 from app.core.config import get_settings
 from app.core.exceptions import VideoMindError
 from app.core.logging import configure_logging, get_logger
@@ -303,9 +303,10 @@ def _register_routers(app: FastAPI) -> None:
     # Phase 2: Health endpoints
     app.include_router(health.router, tags=["Health"])
 
-    # Phase 9: Uncomment as implemented
-    # app.include_router(video.router, prefix="/api/v1/videos", tags=["Videos"])
-    # app.include_router(search.router, prefix="/api/v1", tags=["Search"])
+    # Phase 9: Video, Search, Chat
+    app.include_router(video.router, prefix="/api/v1/videos", tags=["Videos"])
+    app.include_router(search.router, prefix="/api/v1", tags=["Search"])
+    app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 
 
 # ---------------------------------------------------------------------------

@@ -112,4 +112,4 @@ show_missing = true
 #   Phase 8:  68%  (+ generation layer)
 #   Phase 9:  75%  (+ routes)
 #   Phase 10: 80%  (full test suite)
-fail_under = 68
+fail_under = 80

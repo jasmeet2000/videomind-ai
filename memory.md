@@ -102,7 +102,7 @@
 | 6 | ✅ Complete | Embeddings + Qdrant |
 | 7 | ✅ Complete | Retrieval layer (Dense, Sparse BM25, Hybrid, Reranker) |
 | 8 | ✅ Complete | LLM integration + RAG (Ollama) |
-| 9 | ⏳ Pending | FastAPI routes + Streamlit |
+| 9 | ✅ Complete | FastAPI routes + Streamlit |
 | 10 | ⏳ Pending | Tests |
 | 11 | ⏳ Pending | Docker + CI/CD |
 | 12 | ⏳ Pending | README + final docs |

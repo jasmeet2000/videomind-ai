@@ -12,6 +12,7 @@ Production requirement:
 
 from __future__ import annotations
 
+from typing import Optional
 from pydantic import BaseModel, Field
 
 from app.domain.entities import Modality
@@ -37,7 +38,7 @@ class SearchRequest(BaseModel):
         le=20,
         description="Maximum number of results to return (1–20).",
     )
-    modality_filter: list[Modality] | None = Field(
+    modality_filter: Optional[list[Modality]] = Field(
         default=None,
         description="Restrict results to specific modalities (audio, visual, object, scene).",
     )
@@ -52,7 +53,7 @@ class SearchResultItem(BaseModel):
     text: str = Field(description="Text content of the retrieved chunk.")
     score: float = Field(description="Relevance score [0.0, 1.0].")
     start_seconds: float = Field(description="Timestamp in the video (seconds).")
-    end_seconds: float | None = Field(
+    end_seconds: Optional[float] = Field(
         default=None,
         description="End timestamp for audio chunks; None for frame results.",
     )

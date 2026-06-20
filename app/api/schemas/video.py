@@ -15,7 +15,7 @@ Production requirement:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Optional
 
 from pydantic import BaseModel, Field
 
@@ -32,12 +32,12 @@ class UploadVideoRequest(BaseModel):
     The actual file bytes come via FastAPI's UploadFile — this schema
     captures any additional metadata fields sent with the form.
     """
-    title: str | None = Field(
+    title: Optional[str] = Field(
         default=None,
         max_length=255,
         description="Optional human-readable title for the video.",
     )
-    description: str | None = Field(
+    description: Optional[str] = Field(
         default=None,
         max_length=2000,
         description="Optional freeform description of the video content.",
