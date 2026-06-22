@@ -22,7 +22,7 @@ from theme import get_google_fonts_html, get_theme_css
 
 # Configure page
 st.set_page_config(
-    page_title="VideoMind AI", page_icon="🎬", layout="wide", initial_sidebar_state="expanded"
+    page_title="VideoMind AI", page_icon="🎬", layout="wide", initial_sidebar_state="collapsed"
 )
 
 # Set API Base URL from environment or default to local dev
@@ -44,102 +44,92 @@ st.markdown(get_google_fonts_html(), unsafe_allow_html=True)
 st.markdown(get_theme_css(st.session_state["theme"]), unsafe_allow_html=True)
 st.components.v1.html(get_seek_script_html(), height=0, width=0)
 
-# --- Sidebar ---
-with st.sidebar:
-    # Header with Theme Toggle
-    col1, col2, col3, col4 = st.columns([4, 1, 1, 1])
-    with col1:
-        st.markdown("### 🎬 VideoMind AI")
+# --- Header & Controls ---
+col1, col2, col3, col4 = st.columns([8, 1, 1, 1])
+with col1:
+    st.markdown("### 🎬 VideoMind AI")
 
-    def set_theme(t) -> None:
-        st.session_state["theme"] = t
+def set_theme(t) -> None:
+    st.session_state["theme"] = t
 
-    with col2:
-        if st.button("🌙", key="btn_dark", help="Dark Mode", use_container_width=True):
-            set_theme("dark")
-            st.rerun()
-    with col3:
-        if st.button("☀️", key="btn_light", help="Light Mode", use_container_width=True):
-            set_theme("light")
-            st.rerun()
-    with col4:
-        if st.button("🪟", key="btn_glass", help="Glass Mode", use_container_width=True):
-            set_theme("glass")
-            st.rerun()
+with col2:
+    if st.button("🌙", key="btn_dark", help="Dark Mode", use_container_width=True):
+        set_theme("dark")
+        st.rerun()
+with col3:
+    if st.button("☀️", key="btn_light", help="Light Mode", use_container_width=True):
+        set_theme("light")
+        st.rerun()
+with col4:
+    if st.button("🪟", key="btn_glass", help="Glass Mode", use_container_width=True):
+        set_theme("glass")
+        st.rerun()
 
-    st.markdown("---")
+st.markdown("---")
 
-    # Upload Widget
-    st.markdown("#### 📁 Upload Video")
-    uploaded_file = st.file_uploader(
-        "Drag & drop your video here", type=["mp4", "mov", "avi"], label_visibility="collapsed"
-    )
+# --- Upload & Processing ---
+if not st.session_state["video_id"]:
+    # Center the upload area if no video is selected
+    st.markdown("<div style='text-align: center; padding-top: 50px;'><div class='icon' style='font-size: 3rem;'>🎬</div><h3>Upload a video to start chatting</h3></div>", unsafe_allow_html=True)
+    
+    col_upload1, col_upload2, col_upload3 = st.columns([1, 2, 1])
+    with col_upload2:
+        uploaded_file = st.file_uploader(
+            "Drag & drop your video here", type=["mp4", "mov", "avi"], label_visibility="collapsed"
+        )
 
-    if uploaded_file and st.button("Upload & Process", use_container_width=True):
-        st.toast("⚙️ Processing started...", icon="⚙️")
-        try:
-            files = {"file": (uploaded_file.name, uploaded_file, "video/mp4")}
-            res = requests.post(f"{API_BASE_URL}/videos/upload", files=files, timeout=TIMEOUT)
-            res.raise_for_status()
-
-            data = res.json()
-            st.session_state["video_id"] = data["video_id"]
-            # Save a local temp copy for the UI to play, since API serves from backend DATA_DIR
-            os.makedirs("data", exist_ok=True)
-            temp_path = os.path.join("data", f"ui_{uploaded_file.name}")
-            with open(temp_path, "wb") as f:
-                f.write(uploaded_file.getvalue())
-            st.session_state["video_path"] = temp_path
-
-            st.toast("✅ Video uploaded successfully", icon="✅")
-            st.session_state["chat_history"] = []  # Reset chat
-            st.rerun()
-        except Exception:
-            st.toast("❌ Upload failed \u2014 check file format or server connection", icon="❌")
-            st.error("Failed to upload video to the backend.")
-
-    st.markdown("---")
-
-    # Processing Status Tracker
-    if st.session_state["video_id"]:
-        st.markdown("#### ⚙️ Processing Status")
-        status_placeholder = st.empty()
-
-        while True:
+        if uploaded_file and st.button("Upload & Process", use_container_width=True):
+            st.toast("⚙️ Processing started...", icon="⚙️")
             try:
-                res = requests.get(
-                    f"{API_BASE_URL}/videos/{st.session_state['video_id']}/status", timeout=TIMEOUT
-                )
-                if res.status_code == 200:
-                    status_data = res.json()
+                files = {"file": (uploaded_file.name, uploaded_file, "video/mp4")}
+                res = requests.post(f"{API_BASE_URL}/videos/upload", files=files, timeout=TIMEOUT)
+                res.raise_for_status()
+
+                data = res.json()
+                st.session_state["video_id"] = data["video_id"]
+                # Save a local temp copy for the UI to play, since API serves from backend DATA_DIR
+                os.makedirs("data", exist_ok=True)
+                temp_path = os.path.join("data", f"ui_{uploaded_file.name}")
+                with open(temp_path, "wb") as f:
+                    f.write(uploaded_file.getvalue())
+                st.session_state["video_path"] = temp_path
+
+                st.toast("✅ Video uploaded successfully", icon="✅")
+                st.session_state["chat_history"] = []  # Reset chat
+                st.rerun()
+            except Exception:
+                st.toast("❌ Upload failed — check file format or server connection", icon="❌")
+                st.error("Failed to upload video to the backend.")
+
+else:
+    # Processing Status Tracker
+    status_placeholder = st.empty()
+
+    while True:
+        try:
+            res = requests.get(
+                f"{API_BASE_URL}/videos/{st.session_state['video_id']}/status", timeout=TIMEOUT
+            )
+            if res.status_code == 200:
+                status_data = res.json()
+                if status_data.get("status") not in ("completed", "failed"):
                     status_placeholder.markdown(
                         render_pipeline_stepper(status_data.get("progress_message", "")),
                         unsafe_allow_html=True,
                     )
-
-                    if status_data.get("status") in ("completed", "failed"):
-                        break
                 else:
+                    status_placeholder.empty()
                     break
-            except Exception:
-                status_placeholder.markdown(skeleton_status(), unsafe_allow_html=True)
+            else:
                 break
+        except Exception:
+            status_placeholder.markdown(skeleton_status(), unsafe_allow_html=True)
+            break
 
-            time.sleep(3)
+        time.sleep(3)
 
-
-# --- Main Area ---
-if not st.session_state["video_id"]:
-    st.markdown(
-        "<div class='vm-empty-state'><div class='icon'>🎬</div><p>Open the sidebar on the left to upload a video and start chatting</p></div>",
-        unsafe_allow_html=True,
-    )
-else:
-    # Video Player
+    # --- Main Video Area ---
     if st.session_state["video_path"] and os.path.exists(st.session_state["video_path"]):
-        # Since local files can't be served easily through standard html tags in Streamlit without proper setup,
-        # we will use st.video() but wrap it if we want custom styling, or use a local file serving hack.
-        # But Streamlit's st.video is safest for local files.
         st.markdown("<div class='vm-video-container'>", unsafe_allow_html=True)
         st.video(st.session_state["video_path"])
         st.markdown("</div>", unsafe_allow_html=True)
@@ -241,7 +231,7 @@ else:
 
                 if not results:
                     st.markdown(
-                        "<div class='vm-empty-state'><div class='icon'>🤷</div><p>No results found \u2014 try different keywords</p></div>",
+                        "<div class='vm-empty-state'><div class='icon'>🤷</div><p>No results found — try different keywords</p></div>",
                         unsafe_allow_html=True,
                     )
                 else:
