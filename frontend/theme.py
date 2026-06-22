@@ -117,6 +117,11 @@ def get_theme_css(theme_name: str) -> str:
     section[data-testid="stSidebar"] .stMarkdown {{
         color: var(--text-primary);
     }}
+    
+    /* Hide sidebar toggle to keep it permanently visible */
+    [data-testid="collapsedControl"] {{
+        display: none !important;
+    }}
 
     /* Streamlit tabs */
     .stTabs [data-baseweb="tab-list"] {{
