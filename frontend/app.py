@@ -131,7 +131,7 @@ with st.sidebar:
 # --- Main Area ---
 if not st.session_state["video_id"]:
     st.markdown(
-        "<div class='vm-empty-state'><div class='icon'>🎬</div><p>Upload a video to start chatting</p></div>",
+        "<div class='vm-empty-state'><div class='icon'>🎬</div><p>Open the sidebar on the left to upload a video and start chatting</p></div>",
         unsafe_allow_html=True,
     )
 else:
