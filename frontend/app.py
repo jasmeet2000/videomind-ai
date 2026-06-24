@@ -25,9 +25,9 @@ st.set_page_config(
     page_title="VideoMind AI", page_icon="🎬", layout="wide", initial_sidebar_state="collapsed"
 )
 
-# Set API Base URL from environment or default to local dev
+# Set API Base URL from environment or default to local development
 API_BASE_URL = os.environ.get("API_URL", "http://localhost:8000/api/v1")
-TIMEOUT = 30.0
+TIMEOUT = 300.0
 
 # Initialize Session State
 if "theme" not in st.session_state:
