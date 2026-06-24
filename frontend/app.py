@@ -1,7 +1,7 @@
 """
 VideoMind AI — Streamlit Frontend
 ===================================
-Main application entry point.
+Main application entry point is here
 """
 
 import os
