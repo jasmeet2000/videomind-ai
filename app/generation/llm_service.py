@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class OllamaClient(ILLMBackend):
     """Client for generating responses using a local Ollama instance."""
 
-    def __init__(self, host: str = "http://localhost:11434", model: str = "qwen3") -> None:
+    def __init__(self, host: str = "http://localhost:11434", model: str = "llama3") -> None:
         self.host = host.rstrip("/")
         self.model = model
 

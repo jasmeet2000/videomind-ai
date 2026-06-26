@@ -49,7 +49,7 @@ class Settings(BaseSettings):
 
     # --- LLM ---
     ollama_host: str = Field(default="http://localhost:11434")
-    ollama_model: str = Field(default="qwen3")
+    ollama_model: str = Field(default="llama3")
     ollama_timeout_seconds: int = Field(default=120)
 
     # --- Embedding ---
