@@ -105,28 +105,25 @@ else:
     # Processing Status Tracker
     status_placeholder = st.empty()
 
-    while True:
-        try:
-            res = requests.get(
-                f"{API_BASE_URL}/videos/{st.session_state['video_id']}/status", timeout=TIMEOUT
-            )
-            if res.status_code == 200:
-                status_data = res.json()
-                if status_data.get("status") not in ("completed", "failed"):
-                    status_placeholder.markdown(
-                        render_pipeline_stepper(status_data.get("progress_message", "")),
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    status_placeholder.empty()
-                    break
+    # PERFORMANCE: Avoid tight while True loops which block the Streamlit UI thread.
+    # Instead, we check status once per render and use st.rerun() to schedule the next check.
+    try:
+        res = requests.get(
+            f"{API_BASE_URL}/videos/{st.session_state['video_id']}/status", timeout=TIMEOUT
+        )
+        if res.status_code == 200:
+            status_data = res.json()
+            if status_data.get("status") not in ("completed", "failed"):
+                status_placeholder.markdown(
+                    render_pipeline_stepper(status_data.get("progress_message", "")),
+                    unsafe_allow_html=True,
+                )
+                time.sleep(3)
+                st.rerun()
             else:
-                break
-        except Exception:
-            status_placeholder.markdown(skeleton_status(), unsafe_allow_html=True)
-            break
-
-        time.sleep(3)
+                status_placeholder.empty()
+    except Exception:
+        status_placeholder.markdown(skeleton_status(), unsafe_allow_html=True)
 
     # --- Main Video Area ---
     if st.session_state["video_path"] and os.path.exists(st.session_state["video_path"]):

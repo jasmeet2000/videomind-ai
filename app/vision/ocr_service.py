@@ -17,6 +17,11 @@ SOLID — Open/Closed:
 
 SOLID — Liskov Substitution:
     All engines implement extract(image) -> List[TextBlock]. Swapping is safe.
+
+PERFORMANCE — Lazy Fallback Loading:
+    The fallback OCR engine is wrapped in _LazyOCREngine so it is only
+    loaded on first use. This avoids loading ~500MB of EasyOCR model weights
+    at startup if PaddleOCR confidence is always above threshold.
 """
 
 from __future__ import annotations
@@ -27,6 +32,28 @@ from app.domain.entities import TextBlock
 from app.domain.interfaces import IOCREngine
 
 # Stub — implementation in Phase 5
+
+
+class _LazyOCREngine(IOCREngine):
+    """Proxy that defers OCR engine initialization until the first extract() call.
+
+    PERFORMANCE: Loading an OCR engine (especially EasyOCR) takes 2-5 seconds
+    and consumes ~500MB of RAM. This proxy ensures that cost is only paid when
+    the fallback is actually needed — which may never happen if the primary
+    engine's confidence stays above the threshold.
+    """
+
+    def __init__(self, factory_fn) -> None:
+        self._factory_fn = factory_fn
+        self._engine: IOCREngine | None = None
+
+    def _ensure_engine(self) -> IOCREngine:
+        if self._engine is None:
+            self._engine = self._factory_fn()
+        return self._engine
+
+    def extract(self, image: np.ndarray) -> list[TextBlock]:
+        return self._ensure_engine().extract(image)
 
 
 class OCRService:
@@ -83,23 +110,38 @@ class OCRService:
             return primary_blocks
 
 
+# ---------------------------------------------------------------------------
+# Singleton OCR service instance — loaded once and reused.
+# ---------------------------------------------------------------------------
+_ocr_service_instance: OCRService | None = None
+
+
 def get_ocr_service() -> OCRService:
     """
     Dependency Injection / Strategy Factory:
     Loads OCR engines based on application settings.
+
+    PERFORMANCE: Returns a cached singleton to avoid re-initializing
+    OCR models on every call. The fallback engine is wrapped in
+    _LazyOCREngine so it is only loaded on first use.
     """
+    global _ocr_service_instance
+    if _ocr_service_instance is not None:
+        return _ocr_service_instance
+
     from app.core.config import get_settings
     from app.core.logging import get_logger
-    from app.vision.easy_ocr import EasyOCRAdapter
     from app.vision.paddle_ocr import PaddleOCRAdapter
 
     settings = get_settings()
     logger = get_logger(__name__)
 
-    # Strategy selector registry
+    # Strategy selector registry — import adapters lazily
     engines = {
         "paddleocr": PaddleOCRAdapter,
-        "easyocr": EasyOCRAdapter,
+        "easyocr": lambda: __import__(
+            "app.vision.easy_ocr", fromlist=["EasyOCRAdapter"]
+        ).EasyOCRAdapter,
     }
 
     primary_name = settings.ocr_engine.lower()
@@ -111,15 +153,20 @@ def get_ocr_service() -> OCRService:
         )
         primary_cls = PaddleOCRAdapter
 
-    primary_engine = primary_cls()
+    primary_engine = primary_cls() if primary_name != "easyocr" else primary_cls()()
 
-    # Configure EasyOCR as fallback if the primary engine is PaddleOCR
+    # Configure EasyOCR as a LAZY fallback if the primary engine is PaddleOCR.
+    # _LazyOCREngine ensures EasyOCR model weights (~500MB) are only loaded
+    # when the primary engine's confidence is below threshold.
     fallback_engine = None
     if primary_name == "paddleocr":
-        fallback_engine = EasyOCRAdapter()
+        from app.vision.easy_ocr import EasyOCRAdapter
+        fallback_engine = _LazyOCREngine(factory_fn=EasyOCRAdapter)
 
-    return OCRService(
+    _ocr_service_instance = OCRService(
         engine=primary_engine,
         fallback_engine=fallback_engine,
         confidence_threshold=settings.ocr_confidence_threshold,
     )
+    return _ocr_service_instance
+

@@ -1,7 +1,7 @@
 """
 VideoMind AI — Whisper Transcription Service
 ==============================================
-Wraps the OpenAI Whisper model to produce timestamped transcript chunks.
+Wraps the Whisper model to produce timestamped transcript chunks.
 
 SOLID — Single Responsibility:
     Only transcribes audio. Does not chunk, embed, or save results.
@@ -13,6 +13,12 @@ SOLID — Dependency Inversion:
 DESIGN PATTERN — Strategy:
     WhisperService accepts a model size at construction — swapping from
     "base" to "medium" or distil-whisper requires no caller changes.
+
+PERFORMANCE — faster-whisper preferred:
+    Uses faster-whisper (CTranslate2 backend) by default, which is
+    4× faster on CPU and uses ~50% less RAM than openai-whisper.
+    Falls back to openai-whisper automatically if faster-whisper is
+    not installed.
 """
 
 from __future__ import annotations
@@ -30,7 +36,10 @@ logger = get_logger(__name__)
 
 class WhisperService:
     """
-    Transcribes audio files using OpenAI Whisper with timestamped segments.
+    Transcribes audio files using Whisper with timestamped segments.
+
+    PERFORMANCE: Prefers faster-whisper (CTranslate2) for 4× speedup on CPU.
+    Falls back to openai-whisper if faster-whisper is not installed.
 
     This implementation loads the Whisper model lazily. In CI and unit
     tests the whisper module may be mocked; code defers importing it until
@@ -47,7 +56,52 @@ class WhisperService:
         self.device = device
         self._model = None  # Lazy-loaded on first call (expensive)
         self.language = get_settings().whisper_language
+        self._use_faster_whisper = None  # Auto-detected on first call
         self._whisper_module = None
+
+    def _load_model(self, video_id: str) -> None:
+        """Lazily load the best available Whisper implementation."""
+        if self._model is not None:
+            return
+
+        # Try faster-whisper first (CTranslate2 — 4× faster on CPU, 50% less RAM)
+        try:
+            from faster_whisper import WhisperModel as FasterWhisperModel
+
+            compute_type = "int8" if self.device == "cpu" else "float16"
+            self._model = FasterWhisperModel(
+                self.model_size,
+                device=self.device,
+                compute_type=compute_type,
+            )
+            self._use_faster_whisper = True
+            logger.info(
+                "Loaded faster-whisper model",
+                model=self.model_size,
+                device=self.device,
+                compute_type=compute_type,
+            )
+            return
+        except ImportError:
+            logger.info("faster-whisper not installed, trying openai-whisper fallback")
+        except Exception as exc:
+            logger.warning("faster-whisper load failed, trying fallback", error=str(exc))
+
+        # Fallback to openai-whisper
+        try:
+            import whisper as _whisper
+
+            self._model = _whisper.load_model(self.model_size, device=self.device)
+            self._whisper_module = _whisper
+            self._use_faster_whisper = False
+            logger.info(
+                "Loaded openai-whisper model",
+                model=self.model_size,
+                device=self.device,
+            )
+        except Exception as exc:
+            logger.exception("All whisper backends failed", error=str(exc))
+            raise TranscriptionError(video_id, f"whisper load error: {exc}")
 
     def transcribe(self, audio_path: str, video_id: str) -> list[TranscriptChunk]:
         """
@@ -69,23 +123,59 @@ class WhisperService:
             raise TranscriptionError(video_id, "audio file not found")
 
         # Lazy-load whisper model
-        if self._model is None:
-            try:
-                import whisper as _whisper
-            except Exception as exc:  # pragma: no cover - import-time failures
-                logger.exception("whisper import failed", error=str(exc))
-                raise TranscriptionError(video_id, f"whisper import error: {exc}")
+        self._load_model(video_id)
 
-            try:
-                self._model = _whisper.load_model(self.model_size, device=self.device)
-                self._whisper_module = _whisper
-            except Exception as exc:  # pragma: no cover - model load failures
-                logger.exception("whisper model load failed", error=str(exc))
-                raise TranscriptionError(video_id, f"whisper load error: {exc}")
+        # Run transcription with the appropriate backend
+        if self._use_faster_whisper:
+            chunks = self._transcribe_faster_whisper(str(src), video_id)
+        else:
+            chunks = self._transcribe_openai_whisper(str(src), video_id)
 
-        # Run transcription
+        # Chunk the transcript into indexable chunks using the chunker
         try:
-            result = self._model.transcribe(str(src), language=self.language)
+            from app.core.constants import TRANSCRIPT_CHUNK_MAX_TOKENS, TRANSCRIPT_OVERLAP_TOKENS
+            from app.speech.chunker import chunk_transcript_chunks
+
+            return chunk_transcript_chunks(
+                chunks,
+                max_tokens=TRANSCRIPT_CHUNK_MAX_TOKENS,
+                overlap_tokens=TRANSCRIPT_OVERLAP_TOKENS,
+            )
+        except Exception as exc:  # pragma: no cover - non-critical
+            logger.exception("chunking failed", error=str(exc))
+            return chunks
+
+    def _transcribe_faster_whisper(
+        self, audio_path: str, video_id: str
+    ) -> list[TranscriptChunk]:
+        """Transcribe using faster-whisper (CTranslate2 backend)."""
+        try:
+            lang = None if self.language == "auto" else self.language
+            segments, info = self._model.transcribe(audio_path, language=lang)
+            detected_language = info.language or self.language
+
+            chunks: list[TranscriptChunk] = []
+            for seg in segments:
+                chunk = TranscriptChunk(
+                    video_id=video_id,
+                    text=seg.text.strip(),
+                    start_seconds=seg.start,
+                    end_seconds=seg.end,
+                    confidence=seg.avg_log_prob if hasattr(seg, "avg_log_prob") else 0.0,
+                    language=detected_language,
+                )
+                chunks.append(chunk)
+            return chunks
+        except Exception as exc:
+            logger.exception("faster-whisper transcription failed", error=str(exc))
+            raise TranscriptionError(video_id, f"faster-whisper error: {exc}")
+
+    def _transcribe_openai_whisper(
+        self, audio_path: str, video_id: str
+    ) -> list[TranscriptChunk]:
+        """Transcribe using openai-whisper (fallback)."""
+        try:
+            result = self._model.transcribe(audio_path, language=self.language)
         except Exception as exc:  # pragma: no cover - runtime transcription errors
             logger.exception("Whisper transcription failed", error=str(exc))
             raise TranscriptionError(video_id, f"whisper transcription error: {exc}")
@@ -131,16 +221,5 @@ class WhisperService:
             )
             chunks.append(chunk)
 
-        # Chunk the transcript into indexable chunks using the chunker
-        try:
-            from app.core.constants import TRANSCRIPT_CHUNK_MAX_TOKENS, TRANSCRIPT_OVERLAP_TOKENS
-            from app.speech.chunker import chunk_transcript_chunks
+        return chunks
 
-            return chunk_transcript_chunks(
-                chunks,
-                max_tokens=TRANSCRIPT_CHUNK_MAX_TOKENS,
-                overlap_tokens=TRANSCRIPT_OVERLAP_TOKENS,
-            )
-        except Exception as exc:  # pragma: no cover - non-critical
-            logger.exception("chunking failed", error=str(exc))
-            return chunks

@@ -19,6 +19,7 @@ Clean Architecture — Application Layer:
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from app.core.logging import get_logger
@@ -55,10 +56,14 @@ class IngestVideoUseCase:
 
         Returns a summary dict with counts and metadata.
         """
-        summary = self.video_processor.process(video_path, video_id)
+        # Await the now-async video_processor
+        summary = await self.video_processor.process(video_path, video_id)
         audio_path = summary.get("audio_path")
 
-        transcripts = self.whisper_service.transcribe(audio_path, video_id)
+        # Offload CPU-bound Whisper transcription to a thread pool
+        transcripts = await asyncio.to_thread(
+            self.whisper_service.transcribe, audio_path, video_id
+        )
 
         await self.transcript_repo.save_batch(transcripts)
 

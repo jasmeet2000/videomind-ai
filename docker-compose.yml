@@ -26,6 +26,12 @@ services:
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6333
       OLLAMA_HOST: http://ollama:11434
+      MALLOC_ARENA_MAX: 2  # Limits Python memory fragmentation
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
     volumes:
       - ./data:/app/data          # Video uploads
       - ./logs:/app/logs          # Loguru output
@@ -50,6 +56,11 @@ services:
       - "8501:8501"
     environment:
       API_URL: http://app:8000/api/v1
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     depends_on:
       - app
     networks:
@@ -68,6 +79,12 @@ services:
       POSTGRES_DB: videomind
     ports:
       - "5432:5432"
+    shm_size: '256m'  # Prevent Postgres shared memory issues
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -88,6 +105,11 @@ services:
     ports:
       - "6333:6333"
       - "6334:6334"      # gRPC port
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     volumes:
       - qdrant_data:/qdrant/storage
     networks:
@@ -102,6 +124,11 @@ services:
     restart: unless-stopped
     ports:
       - "11434:11434"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
     volumes:
       - ollama_data:/root/.ollama   # Model weight cache
     networks:

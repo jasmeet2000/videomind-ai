@@ -3,6 +3,11 @@ BGE Embedding Model adapter for VideoMind AI
 
 Implements IEmbeddingModel using the sentence-transformers wrapper for
 BAAI/bge-small-en-v1.5. Loads lazily and runs on CPU by default.
+
+PERFORMANCE — Lazy Imports & Batch Sizing:
+    The heavy sentence-transformers module is imported lazily inside
+    _ensure_model() to prevent a 2-second import penalty at startup.
+    Default batch size is reduced to 16 to minimize peak RAM usage on CPU.
 """
 
 from __future__ import annotations
@@ -11,11 +16,6 @@ import numpy as np
 
 from app.domain.interfaces import IEmbeddingModel
 from app.embeddings.registry import ModelRegistry
-
-try:
-    from sentence_transformers import SentenceTransformer
-except Exception:  # pragma: no cover - runtime environment may not have package
-    SentenceTransformer = None
 
 
 class BGEEmbeddingModel(IEmbeddingModel):
@@ -28,22 +28,27 @@ class BGEEmbeddingModel(IEmbeddingModel):
 
     def __init__(self, model_name: str | None = None) -> None:
         self._model_name = model_name or self.DEFAULT_MODEL
-        self._model: SentenceTransformer | None = None
+        self._model = None
 
     def _ensure_model(self) -> None:
         if self._model is not None:
             return
-        if SentenceTransformer is None:
+        
+        # Lazy import of heavy ML library
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
             raise RuntimeError("sentence-transformers package is required for BGEEmbeddingModel")
+            
         # Force CPU-only inference
         self._model = SentenceTransformer(self._model_name, device="cpu")
 
-    def encode(self, texts: list[str], batch_size: int = 32) -> list[list[float]]:
+    def encode(self, texts: list[str], batch_size: int = 16) -> list[list[float]]:
         """Encode texts into dense vectors (lists of floats).
 
         Args:
             texts: list of input strings
-            batch_size: batch size for the underlying model
+            batch_size: batch size for the underlying model. Reduced to 16 for CPU memory safety.
 
         Returns:
             List of embedding vectors (one per input text)

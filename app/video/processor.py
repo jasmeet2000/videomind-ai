@@ -3,10 +3,16 @@ VideoMind AI — Video Processor
 ===============================
 Orchestrates metadata extraction, audio extraction, and frame extraction
 into a single, testable entrypoint for the ingestion pipeline.
+
+PERFORMANCE — Async offloading:
+    CPU-bound and blocking I/O tasks (FFmpeg, OpenCV) are offloaded to
+    a thread pool via `asyncio.to_thread()` to avoid blocking the
+    main FastAPI event loop.
 """
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -32,21 +38,28 @@ class VideoProcessor:
         self.frame_extractor = frame_extractor or FrameExtractor()
         self.output_dir = Path(output_dir)
 
-    def process(self, video_path: str, video_id: str) -> dict[str, Any]:
+    async def process(self, video_path: str, video_id: str) -> dict[str, Any]:
         """Run metadata extraction, audio extraction, and frame sampling.
 
         Returns a summary dict with keys: video_id, metadata, audio_path, frames
         """
         try:
-            metadata = extract_metadata(video_path)
+            # Offload blocking metadata extraction to a thread
+            metadata = await asyncio.to_thread(extract_metadata, video_path)
 
             audio_dir = self.output_dir / "audio"
             audio_dir.mkdir(parents=True, exist_ok=True)
             audio_path = str(audio_dir / f"{video_id}.wav")
 
-            audio_path = self.audio_extractor.extract(video_path, audio_path)
+            # Offload blocking audio extraction (FFmpeg) to a thread
+            audio_path = await asyncio.to_thread(
+                self.audio_extractor.extract, video_path, audio_path
+            )
 
-            frames = self.frame_extractor.extract(video_path, video_id)
+            # Offload blocking frame extraction (OpenCV) to a thread
+            frames = await asyncio.to_thread(
+                self.frame_extractor.extract, video_path, video_id
+            )
 
             summary = {
                 "video_id": video_id,
