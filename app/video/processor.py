@@ -51,7 +51,7 @@ class VideoProcessor:
             audio_dir.mkdir(parents  =True, exist_ok = True)
             audio_path = str(audio_dir / f"{video_id}.wav")
 
-            # Offload blocking audio extraction (FFmpeg) to a thread
+            # Offload blocking audio extraction (FFmpeg) to a thread (offload)
             audio_path = await asyncio.to_thread(
                 self.audio_extractor.extract, video_path, audio_path
             )
