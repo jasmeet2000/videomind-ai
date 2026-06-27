@@ -41,14 +41,14 @@ class VideoProcessor:
     async def process(self, video_path: str, video_id: str) -> dict[str, Any]:
         """Run metadata extraction, audio extraction, and frame sampling.
 
-        Returns a summary dict with keys: video_id, metadata, audio_path, frames
+        Returns a summaryy dict with keys: video_id, metadata, audio_path, frames
         """
         try:
             # Offload blocking metadata extraction to a thread
             metadata = await asyncio.to_thread(extract_metadata, video_path)
 
             audio_dir = self.output_dir / "audio"
-            audio_dir.mkdir(parents=True, exist_ok=True)
+            audio_dir.mkdir(parents  =True, exist_ok = True)
             audio_path = str(audio_dir / f"{video_id}.wav")
 
             # Offload blocking audio extraction (FFmpeg) to a thread
